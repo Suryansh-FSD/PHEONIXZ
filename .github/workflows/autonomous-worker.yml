@@ -1,0 +1,75 @@
+name: PheonixZ Autonomous Worker
+
+on:
+  schedule:
+    # Every 15 minutes — UTC
+    - cron: '*/15 * * * *'
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      agent_id_override:
+        description: 'Override agent ID (leave blank to use repository variable)'
+        required: false
+        default: ''
+
+jobs:
+  cycle:
+    name: Run Autonomous Cycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Determine Agent ID
+        id: agent
+        run: |
+          if [ -n "${{ github.event.inputs.agent_id_override }}" ]; then
+            echo "agent_id=${{ github.event.inputs.agent_id_override }}" >> $GITHUB_OUTPUT
+          else
+            echo "agent_id=${{ vars.PHEONIXZ_AGENT_ID }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Autonomous Cycle
+        id: cycle
+        run: |
+          AGENT_ID="${{ steps.agent.outputs.agent_id }}"
+          API_URL="${{ vars.PHEONIXZ_API_URL }}"
+
+          if [ -z "$AGENT_ID" ]; then
+            echo "ERROR: PHEONIXZ_AGENT_ID is not set"
+            exit 1
+          fi
+
+          if [ -z "$API_URL" ]; then
+            echo "ERROR: PHEONIXZ_API_URL is not set"
+            exit 1
+          fi
+
+          echo "Triggering cycle for agent: $AGENT_ID"
+          echo "API URL: $API_URL"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST "${API_URL}/api/internal/cycle" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -d "{\"agentId\": \"${AGENT_ID}\"}" \
+            --max-time 420)
+
+          HTTP_BODY=$(echo "$RESPONSE" | head -n -1)
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n 1)
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $HTTP_BODY"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "ERROR: Cycle returned HTTP $HTTP_STATUS"
+            echo "response=$HTTP_BODY" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "SUCCESS: Cycle completed"
+          echo "response=$HTTP_BODY" >> $GITHUB_OUTPUT
+
+      - name: Log Result
+        if: always()
+        run: |
+          echo "Cycle result: ${{ steps.cycle.outputs.response }}"
