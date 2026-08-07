@@ -13,7 +13,7 @@
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/CLAUDE.md",
       "pinnedBy": "auto:spec",
       "note": "Claude Code instructions",
-      "pinnedAt": 1786121903096,
+      "pinnedAt": 1786123357524,
       "auto": "spec",
       "role": "spec"
     },
@@ -21,7 +21,7 @@
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/AGENTS.md",
       "pinnedBy": "auto:spec",
       "note": "Multi-agent instructions",
-      "pinnedAt": 1786121903096,
+      "pinnedAt": 1786123357525,
       "auto": "spec",
       "role": "spec"
     },
@@ -29,9 +29,16 @@
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/README.md",
       "pinnedBy": "auto:spec",
       "note": "Project README",
-      "pinnedAt": 1786121903096,
+      "pinnedAt": 1786123357525,
       "auto": "spec",
       "role": "spec"
+    },
+    {
+      "path": "/Users/suryanshdixit/Desktop/PhoenixZ/src/agent/cycle.ts",
+      "pinnedBy": "auto:editor",
+      "pinnedAt": 1786122472683,
+      "auto": "dwell",
+      "expiresAt": 1786126072682
     }
   ],
   "skills": [
@@ -377,5 +384,5 @@
       "updatedAt": 1786117583414
     }
   ],
-  "updatedAt": 1786121903096
+  "updatedAt": 1786123357525
 }

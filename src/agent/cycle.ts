@@ -188,7 +188,7 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
           stats.watched++;
           // Store meaningful move memory even for watch decisions
           if (decision.computedTotal > 60) {
-            await storeCompetitiveMove(candidate, decision).catch(() => {});
+            await Promise.resolve(storeCompetitiveMove(candidate, decision)).catch(() => {});
           }
           continue;
         }
@@ -269,15 +269,15 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         });
 
         stats.published++;
-        console.log(`[cycle] ✓ Published post ${post.id}: "${candidate.title}"`);
+        console.log(`[cycle] ✓ Published post ${post?.id ?? 'stored'}: "${candidate.title}"`);
 
         // Update recent posts for duplicate detection in this cycle
         recentPostTexts.splice(0, 0, postText);
         if (recentPostTexts.length > 5) recentPostTexts.splice(5);
 
         // ── Step 14: Update Breeth memory ─────────────────────────────────
-        await storeCompetitiveMove(candidate, decision).catch(() => {});
-        await storePheonixzJudgment(post, candidate, decision).catch(() => {});
+        await Promise.resolve(storeCompetitiveMove(candidate, decision)).catch(() => {});
+        await Promise.resolve(storePheonixzJudgment(post, candidate, decision)).catch(() => {});
 
       } catch (itemErr) {
         // Item-level failure — log and continue cycle
