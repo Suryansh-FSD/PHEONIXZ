@@ -17,10 +17,20 @@ export async function POST(req: NextRequest) {
     const name: string = persona.name.trim();
     const domain: string = persona.domain.trim();
 
-    // Idempotent — return existing agent if already initialized
+    // Idempotent — return existing agent if already initialized (public read-safe)
     const existing = await getAgentByName(name);
     if (existing) {
       return NextResponse.json({ agentId: existing.id }, { status: 200 });
+    }
+
+    // Creating a new agent requires server authorization (CRON_SECRET)
+    const secretHeader = req.headers.get('x-cron-secret');
+    const expectedSecret = process.env.CRON_SECRET;
+    if (expectedSecret && secretHeader !== expectedSecret) {
+      return NextResponse.json(
+        { error: 'Unauthorized agent creation' },
+        { status: 401 }
+      );
     }
 
     // Create new agent

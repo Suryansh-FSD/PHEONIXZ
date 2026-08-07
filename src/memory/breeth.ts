@@ -123,13 +123,13 @@ export async function storeCompetitiveMove(
 /**
  * Store PheonixZ's editorial judgment after publication.
  */
-export async function storeVantageJudgment(
+export async function storePheonixzJudgment(
   post: PostRow,
   candidate: CandidateRow,
   decision: ScoredDecision
 ): Promise<void> {
   await breethStore({
-    category: 'vantage_judgment',
+    category: 'pheonixz_judgment',
     content: `PheonixZ published on ${candidate.company}: "${candidate.title}". Take: ${post.take_text}`,
     tags: [candidate.company, candidate.move_type, 'published'],
     metadata: {

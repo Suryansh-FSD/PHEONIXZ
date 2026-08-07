@@ -5,15 +5,15 @@
     {
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/PHEONIXZ_ARCHITECTURE.md",
       "pinnedBy": "auto:editor",
-      "pinnedAt": 1786118211823,
+      "pinnedAt": 1786121775850,
       "auto": "dwell",
-      "expiresAt": 1786121811820
+      "expiresAt": 1786125375850
     },
     {
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/CLAUDE.md",
       "pinnedBy": "auto:spec",
       "note": "Claude Code instructions",
-      "pinnedAt": 1786119692315,
+      "pinnedAt": 1786121903096,
       "auto": "spec",
       "role": "spec"
     },
@@ -21,7 +21,7 @@
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/AGENTS.md",
       "pinnedBy": "auto:spec",
       "note": "Multi-agent instructions",
-      "pinnedAt": 1786119692315,
+      "pinnedAt": 1786121903096,
       "auto": "spec",
       "role": "spec"
     },
@@ -29,7 +29,7 @@
       "path": "/Users/suryanshdixit/Desktop/PhoenixZ/README.md",
       "pinnedBy": "auto:spec",
       "note": "Project README",
-      "pinnedAt": 1786119692315,
+      "pinnedAt": 1786121903096,
       "auto": "spec",
       "role": "spec"
     }
@@ -377,5 +377,5 @@
       "updatedAt": 1786117583414
     }
   ],
-  "updatedAt": 1786119692315
+  "updatedAt": 1786121903096
 }

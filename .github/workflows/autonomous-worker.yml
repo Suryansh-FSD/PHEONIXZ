@@ -12,6 +12,10 @@ on:
         required: false
         default: ''
 
+concurrency:
+  group: autonomous-worker
+  cancel-in-progress: false
+
 jobs:
   cycle:
     name: Run Autonomous Cycle

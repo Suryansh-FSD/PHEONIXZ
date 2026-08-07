@@ -362,7 +362,7 @@ Recommended memory categories:
 competitive_move
 competitive_response
 strategic_pattern
-vantage_judgment
+pheonixz_judgment
 competitive_thread
 ```
 

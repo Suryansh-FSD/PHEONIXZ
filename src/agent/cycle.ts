@@ -8,7 +8,7 @@ import { scoreCandidate } from './editorial';
 import { isPublishingAllowed } from './rateLimit';
 import { generatePost, assemblePostText } from './writer';
 import { qualityCheck } from './quality';
-import { retrieveMemory, storeCompetitiveMove, storeVantageJudgment } from '@/memory/breeth';
+import { retrieveMemory, storeCompetitiveMove, storePheonixzJudgment } from '@/memory/breeth';
 import { withFallback } from '@/ai/withFallback';
 import { DISCOVERY_SYSTEM_PROMPT } from '@/prompts/discovery';
 import { NormalizedCandidateSchema } from '@/schemas/candidate';
@@ -18,6 +18,7 @@ import type { CycleResult } from '@/schemas/cycle';
 import type { RawItem } from './clustering';
 
 const AI_TIMEOUT_MS = 30_000;
+const MAX_CANDIDATES_PER_CYCLE = 3;
 
 // ── Discovery normalization (AI Call 1) ─────────────────────────────────────
 
@@ -87,8 +88,13 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
     // ── Steps 3–13: Per-candidate pipeline ───────────────────────────────────
     const recentDecisions = await getRecentDecisions(agentId, 48).catch(() => []);
     const recentPostTexts = await getRecentPostTexts(agentId, 5).catch(() => []);
+    let processedCandidatesCount = 0;
 
     for (const rawItem of rawItems) {
+      if (processedCandidatesCount >= MAX_CANDIDATES_PER_CYCLE) {
+        console.log(`[cycle] Reached MAX_CANDIDATES_PER_CYCLE (${MAX_CANDIDATES_PER_CYCLE}). Deferring remaining ${rawItems.length - processedCandidatesCount} items to subsequent cycles.`);
+        break;
+      }
       try {
         // ── Step 3: Normalize (AI Call 1) ──────────────────────────────────
         console.log(`[cycle] Normalizing: "${rawItem.title.slice(0, 60)}..."`);
@@ -129,7 +135,8 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         });
 
         stats.candidatesFound++;
-        console.log(`[cycle] Candidate stored: "${candidate.title}" (${candidate.id})`);
+        processedCandidatesCount++;
+        console.log(`[cycle] Candidate stored (${processedCandidatesCount}/${MAX_CANDIDATES_PER_CYCLE}): "${candidate.title}" (${candidate.id})`);
 
         // ── Step 7: Retrieve Breeth memory ────────────────────────────────
         const memoryContext = await retrieveMemory(candidate).catch(() => ({
@@ -270,7 +277,7 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
 
         // ── Step 14: Update Breeth memory ─────────────────────────────────
         await storeCompetitiveMove(candidate, decision).catch(() => {});
-        await storeVantageJudgment(post, candidate, decision).catch(() => {});
+        await storePheonixzJudgment(post, candidate, decision).catch(() => {});
 
       } catch (itemErr) {
         // Item-level failure — log and continue cycle
