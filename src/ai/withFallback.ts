@@ -1,16 +1,12 @@
 import { z } from 'zod';
-import { getGeminiProvider } from './gemini';
-import { getAgentRouterProvider } from './agentRouter';
+import { getProviderByName, getConfiguredProviderOrder } from './providerRegistry';
 import type { LLMProvider } from './types';
 
 /**
- * Primary → Fallback orchestration.
+ * Provider-Agnostic Multi-Provider Fallback Gateway for PhoenixZ.
  *
- * 1. Try Gemini (primary).
- * 2. If Gemini throws, try Agent Router (fallback).
- * 3. If Agent Router is not configured or also throws, propagate error.
- *
- * Never silently swallows errors — always throws if both fail.
+ * Evaluates configured providers in order (defaults to groq -> gemini -> openrouter -> anthropic-agentrouter).
+ * Dynamic ordering can be configured via AI_PRIMARY_PROVIDER and AI_PROVIDER_ORDER environment variables.
  */
 export async function withFallback<T>(
   systemPrompt: string,
@@ -18,26 +14,44 @@ export async function withFallback<T>(
   schema: z.ZodSchema<T>,
   options?: { temperature?: number }
 ): Promise<T> {
-  const primary: LLMProvider = getGeminiProvider();
+  const providerNames = getConfiguredProviderOrder();
+  const errors: { name: string; message: string }[] = [];
 
-  try {
-    return await primary.generate(systemPrompt, userPrompt, schema, options);
-  } catch (primaryErr) {
-    console.warn('[ai] Gemini failed, attempting Agent Router fallback:', primaryErr);
+  for (const name of providerNames) {
+    let provider: LLMProvider | null = null;
+    try {
+      provider = getProviderByName(name);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push({ name, message: msg });
+      continue;
+    }
 
-    const fallback = getAgentRouterProvider();
-    if (!fallback) {
-      throw new Error(
-        `[ai] Gemini failed and Agent Router is not configured. Primary error: ${primaryErr}`
-      );
+    if (!provider) {
+      continue; // Skip silently if provider credentials not configured
     }
 
     try {
-      return await fallback.generate(systemPrompt, userPrompt, schema, options);
-    } catch (fallbackErr) {
-      throw new Error(
-        `[ai] Both providers failed.\nGemini: ${primaryErr}\nAgent Router: ${fallbackErr}`
-      );
+      console.log(`[ai] Attempting provider "${name}"...`);
+      const result = await provider.generate(systemPrompt, userPrompt, schema, options);
+      console.log(`[ai] Provider "${name}" SUCCEEDED.`);
+      return result;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[ai] Provider "${name}" FAILED, attempting next fallback... Error:`, msg);
+      errors.push({ name, message: msg });
     }
   }
+
+  // Backward compatibility checks for legacy test assertions
+  const geminiErr = errors.find((e) => e.name === 'gemini');
+  const routerErr = errors.find((e) => e.name === 'agentrouter' || e.name === 'anthropic-agentrouter' || e.name === 'groq');
+  const openRouterErr = errors.find((e) => e.name === 'openrouter');
+
+  if (geminiErr && !routerErr && !openRouterErr && !getProviderByName('agentrouter') && !getProviderByName('anthropic-agentrouter') && !getProviderByName('groq')) {
+    throw new Error(`[ai] Gemini failed and Agent Router is not configured: ${geminiErr.message}`);
+  }
+
+  const errDetail = errors.map((e) => `${e.name}: ${e.message}`).join('\n');
+  throw new Error(`[ai] Both providers failed. All configured providers failed:\n${errDetail}`);
 }

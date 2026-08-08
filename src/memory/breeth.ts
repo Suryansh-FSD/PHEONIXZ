@@ -3,7 +3,7 @@ import type { CandidateRow } from '@/db/candidates';
 import type { ScoredDecision } from '@/schemas/decision';
 import type { PostRow } from '@/db/posts';
 
-const BREETH_BASE_URL = 'https://api.breeth.ai'; // Update when credentials confirmed
+const BREETH_BASE_URL = process.env.BREETH_BASE_URL ?? 'https://mcp.thebreeth.com';
 const MAX_MEMORY_RESULTS = 5;
 
 // ── Breeth HTTP client ──────────────────────────────────────────────────────

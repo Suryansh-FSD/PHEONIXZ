@@ -23,6 +23,10 @@
 # misc
 .DS_Store
 *.pem
+.agents/
+.supabase/
+.aicb/
+skills-lock.json
 
 # debug
 npm-debug.log*
@@ -30,8 +34,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel

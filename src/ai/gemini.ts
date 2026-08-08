@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import type { LLMProvider } from './types';
+import { parseJsonResponse } from './parseJson';
 
-const MODEL_NAME = 'gemini-2.0-flash';
+const MODEL_NAME = process.env.GEMINI_MODEL ?? 'gemini-flash-latest';
 
 class GeminiProvider implements LLMProvider {
   private client: GoogleGenerativeAI;
@@ -29,21 +30,7 @@ class GeminiProvider implements LLMProvider {
     const response = await model.generateContent(userPrompt);
     const text = response.response.text();
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error(`[gemini] Failed to parse JSON response: ${text.slice(0, 200)}`);
-    }
-
-    const result = schema.safeParse(parsed);
-    if (!result.success) {
-      throw new Error(
-        `[gemini] Schema validation failed: ${result.error.message}\nRaw: ${text.slice(0, 300)}`
-      );
-    }
-
-    return result.data;
+    return parseJsonResponse(text, schema, 'gemini');
   }
 }
 

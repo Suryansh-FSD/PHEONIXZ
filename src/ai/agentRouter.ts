@@ -1,20 +1,21 @@
 import { z } from 'zod';
 import type { LLMProvider } from './types';
+import { parseJsonResponse } from './parseJson';
 
 /**
- * Agent Router fallback provider.
- * Uses the same LLMProvider interface as Gemini.
- * Activated only when Gemini throws.
- *
- * NOTE: Replace AGENT_ROUTER_BASE_URL with actual endpoint once credentials are available.
+ * Agent Router Anthropic Messages Provider (Claude Opus).
+ * Implements the LLMProvider interface for PheonixZ.
+ * Uses Anthropic Messages protocol (POST /v1/messages) via AgentRouter (co.agentrouter.org).
  */
 class AgentRouterProvider implements LLMProvider {
   private baseUrl: string;
   private apiKey: string;
+  private model: string;
 
-  constructor(baseUrl: string, apiKey: string) {
+  constructor(baseUrl: string, apiKey: string, model?: string) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.apiKey = apiKey;
+    this.model = model || process.env.AGENT_ROUTER_MODEL || 'claude-opus-5';
   }
 
   async generate<T>(
@@ -23,57 +24,75 @@ class AgentRouterProvider implements LLMProvider {
     schema: z.ZodSchema<T>,
     options?: { temperature?: number }
   ): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/v1/generate`, {
+    const cleanBase = this.baseUrl.replace(/\/v1\/?$/, '').replace(/\/$/, '');
+    const endpoint = `${cleanBase}/v1/messages`;
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
+        model: this.model,
+        max_tokens: 2000,
         system: systemPrompt,
-        prompt: userPrompt,
-        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
         temperature: options?.temperature ?? 0.2,
       }),
       signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
-      throw new Error(`[agent-router] HTTP ${response.status}: ${await response.text()}`);
+      const errText = await response.text().catch(() => '');
+      throw new Error(`[agent-router] HTTP ${response.status}: ${errText.slice(0, 300)}`);
     }
 
     const data = await response.json();
 
-    // Agent Router wraps output in { content: "..." } or { text: "..." }
-    const rawText: string = data.content ?? data.text ?? data.output ?? JSON.stringify(data);
-
-    let parsed: unknown;
-    try {
-      parsed = typeof rawText === 'string' ? JSON.parse(rawText) : rawText;
-    } catch {
-      throw new Error(`[agent-router] Failed to parse JSON: ${rawText.slice(0, 200)}`);
+    // Anthropic Messages API format: content is array of blocks e.g. [{ type: "text", text: "..." }]
+    let extractedText = '';
+    if (Array.isArray(data.content)) {
+      extractedText = data.content
+        .filter((block: unknown): block is { type: string; text: string } => {
+          if (typeof block !== 'object' || block === null) return false;
+          const b = block as Record<string, unknown>;
+          return b.type === 'text' && typeof b.text === 'string';
+        })
+        .map((block: { text: string }) => block.text)
+        .join('\n')
+        .trim();
+    } else if (typeof data.content === 'string') {
+      extractedText = data.content;
+    } else if (typeof data.text === 'string') {
+      extractedText = data.text;
+    } else if (data.choices?.[0]?.message?.content) {
+      extractedText = data.choices[0].message.content;
     }
 
-    const result = schema.safeParse(parsed);
-    if (!result.success) {
-      throw new Error(
-        `[agent-router] Schema validation failed: ${result.error.message}`
-      );
+    if (!extractedText) {
+      throw new Error(`[agent-router] Empty text in response from model ${this.model}`);
     }
 
-    return result.data;
+    return parseJsonResponse(extractedText, schema, 'agent-router');
   }
 }
 
-// Singleton — only instantiated when Agent Router credentials are present
+// Singleton — instantiated when Agent Router credentials are present
 let _agentRouter: AgentRouterProvider | null = null;
 
 export function getAgentRouterProvider(): LLMProvider | null {
-  const baseUrl = process.env.AGENT_ROUTER_BASE_URL;
+  const baseUrl = process.env.AGENT_ROUTER_BASE_URL || 'https://co.agentrouter.org';
   const apiKey = process.env.AGENT_ROUTER_API_KEY;
 
   if (!baseUrl || !apiKey) {
-    console.warn('[agent-router] Credentials not configured — fallback unavailable');
     return null;
   }
 
