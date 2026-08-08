@@ -1,4 +1,4 @@
-<!-- AICB:BEGIN {"version":1,"target":"AGENT.md","generatedAt":"2026-08-08T19:39:01.173Z","hash":"sha256:0759388731f29c976cd56ff65cef2107e6b0ce0623161b01b7421e2a8abaf089"} -->
+<!-- AICB:BEGIN {"version":1,"target":"AGENT.md","generatedAt":"2026-08-08T20:17:37.503Z","hash":"sha256:f0f0456ba308b75eaf27b7ea744629a2b6e9105474faebcd8cdb1b5aa30af81d"} -->
 # AI Context Bridge — Handoff
 
 Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
@@ -13,6 +13,9 @@ Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
 - `.cursorrules` _(spec)_ — Cursor rules
 - `.windsurfrules` _(spec)_ — Windsurf rules
 - `.github/copilot-instructions.md` _(spec)_ — GitHub Copilot instructions (.github)
+
+## Working files (current focus)
+- `src/components/ui/FeedCard.tsx` _(auto:dwell)_
 
 ## Skills
 - **ENABLED** — Dataproc and Spark Integration, ML on Dataproc, Spark Optimizations, gcp_pipeline_resource_provisioning_spec, Pipeline YAML Schema, Bottlenecks and Parallelism Context, Dataflow Diagnostics Reference, dataflow_metrics_bigquery, Core Job Metrics, dataflow_metrics_pubsub, dataflow_metrics_streaming_engine, Dataflow Flex Template - Single Docker Image Configuration, Dataflow Streaming Horizontal Autoscaling Analysis, Streaming Job Health Analysis, BigFrames Code Generation, BigQuery ML (BQML) & AI Functions, BigQuery Optimization, AI.EVALUATE, AI.FORECAST, AI.GENERATE_EMBEDDING, Contribution Analysis, Creating Remote Models, VECTOR_SEARCH, Gemini Data Analytics Chat Integration, Building with React + Vite, Building with Streamlit

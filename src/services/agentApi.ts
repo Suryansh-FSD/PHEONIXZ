@@ -109,6 +109,7 @@ export async function fetchAgentFeed(agentId: string): Promise<FeedItem[]> {
       angleText: angleText,
       pressureText: pressureText,
       takeText: takeText,
+      text: post.text,
       totalScore: 85,
       scoreBreakdown: {
         marketPressure: 22,

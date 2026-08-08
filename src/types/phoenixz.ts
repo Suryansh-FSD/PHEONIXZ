@@ -47,6 +47,11 @@ export interface ScoreBreakdown {
   patternContinuity: number; // /10
 }
 
+export interface SourceObject {
+  title?: string;
+  url: string;
+}
+
 // Primary Feed Analysis Item Contract
 export interface FeedItem {
   id: string;
@@ -61,21 +66,21 @@ export interface FeedItem {
   pressureText: string;
   takeText: string;
   
-  // Rubric & Audit Rationale
-  totalScore: number;
-  scoreBreakdown: ScoreBreakdown;
+  // Assembled Text & Strategic Rationale
+  text?: string;
   rationale: string;
+  sources: Array<string | SourceObject>;
   
-  // Cognitive Context & Sources
+  // Optional detailed view props
+  totalScore?: number;
+  scoreBreakdown?: ScoreBreakdown;
   memoryContext?: string;
-  timelineContext?: { company: string; action: string; timestamp: string }[];
-  sources: { title: string; url: string }[];
+  timelineContext?: CompetitiveStep[];
 }
 
-// Alias for backwards compatibility
 export type EditorialPost = FeedItem;
 
-// Candidate Decision Ledger Contract
+// Decision Verdict Enum
 export type DecisionType = "publish" | "watch" | "reject";
 
 export interface Decision {
@@ -178,7 +183,7 @@ export interface FeedResponse {
     pressure?: string;
     take?: string;
     rationale: string;
-    sources: string[];
+    sources: Array<string | SourceObject>;
   }>;
 }
 
@@ -191,11 +196,16 @@ export interface CycleResponse {
 }
 
 export interface ActivityData {
-  observedCount: number;
-  rejectedCount: number;
-  watchingCount: number;
-  publishedCount: number;
-  lastCycleAt: string;
+  observedCount?: number;
+  rejectedCount?: number;
+  watchingCount?: number;
+  publishedCount?: number;
+  lastCycleAt?: string;
+  lastScan?: string;
+  candidatesFound?: number;
+  published?: number;
+  rejected?: number;
+  watching?: number;
   sourceStatuses: SourceHealth[];
-  recentRuns: Run[];
+  recentRuns?: Run[];
 }

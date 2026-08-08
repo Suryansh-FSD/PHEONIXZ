@@ -60,7 +60,7 @@ export const ActivityPanel: React.FC<ActivityPanelProps> = ({ activity }) => {
           <span className="text-xs text-zinc-400">
             Last scan:{" "}
             <strong className="text-zinc-200 tabular-nums">
-              {formatDate(currentActivity.lastCycleAt)}
+              {formatDate(currentActivity.lastCycleAt || currentActivity.lastScan || new Date().toISOString())}
             </strong>
           </span>
         </div>

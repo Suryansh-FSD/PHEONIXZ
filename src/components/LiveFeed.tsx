@@ -27,10 +27,10 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ posts }) => {
       const matchesCategory =
         selectedCategory === "all" || post.moveType === selectedCategory;
       const matchesSearch =
-        searchQuery === "" ||
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.takeText.toLowerCase().includes(searchQuery.toLowerCase());
+        (post.title?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (post.company?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (post.takeText?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (post.text?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
       return matchesCategory && matchesSearch;
     });
