@@ -8,6 +8,7 @@ import type { MemoryContext } from '@/schemas/memory';
 interface EditorialContext {
   recentDecisions: DecisionRow[];
   memoryContext: MemoryContext;
+  agent?: { name: string; domain: string };
 }
 
 /**
@@ -18,12 +19,18 @@ export async function scoreCandidate(
   candidate: CandidateRow,
   context: EditorialContext
 ): Promise<ScoredDecision> {
+  const agentName = context.agent?.name ?? 'PheonixZ';
+  const agentDomain = context.agent?.domain ?? 'AI Security';
+
   const recentDecisionsSummary = context.recentDecisions
     .slice(0, 10)
     .map((d) => `- ${d.decision.toUpperCase()} (score: ${d.score}): ${d.reason}`)
     .join('\n');
 
   const userPrompt = `
+AGENT PERSONA: ${agentName}
+AGENT DOMAIN: ${agentDomain}
+
 CANDIDATE TO SCORE:
 Company: ${candidate.company}
 Move Type: ${candidate.move_type}
@@ -38,7 +45,11 @@ ${recentDecisionsSummary || 'No recent decisions yet.'}
 MEMORY CONTEXT:
 ${context.memoryContext.formattedContext || 'No relevant memory found.'}
 
-Score this candidate according to the editorial rubric.
+Score this candidate according to the editorial rubric for ${agentName} operating in domain ${agentDomain}.
+Provide a detailed rationale in "reason" explicitly addressing:
+1. Why this topic was selected for ${agentDomain};
+2. Why it is relevant now;
+3. Why it was chosen over competing candidates based on evidence and score.
 `.trim();
 
   const rawResult = await withFallback(

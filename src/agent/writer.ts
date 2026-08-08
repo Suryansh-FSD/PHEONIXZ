@@ -11,10 +11,17 @@ import type { MemoryContext } from '@/schemas/memory';
 export async function generatePost(
   candidate: CandidateRow,
   decision: ScoredDecision,
-  memoryContext: MemoryContext
+  memoryContext: MemoryContext,
+  agent?: { name: string; domain: string }
 ): Promise<WriterOutput> {
+  const agentName = agent?.name ?? 'PheonixZ';
+  const agentDomain = agent?.domain ?? 'AI Security';
+
   const userPrompt = `
-Write a PheonixZ analysis for the following product move.
+AGENT NAME: ${agentName}
+AGENT DOMAIN: ${agentDomain}
+
+Write an expert analysis for the following product move.
 
 COMPANY: ${candidate.company}
 MOVE TYPE: ${candidate.move_type}
@@ -31,8 +38,8 @@ Reason: ${decision.reason}
 MEMORY CONTEXT (use to inform THE TAKE and pattern analysis):
 ${memoryContext.formattedContext}
 
-Write the four sections: THE MOVE, THE ANGLE, THE PRESSURE, PHEONIXZ'S TAKE.
-Remember: analytical, understated, no hype language. Name specific competitors in THE PRESSURE.
+Write the four sections: THE MOVE, THE ANGLE, THE PRESSURE, ${agentName.toUpperCase()}'S TAKE.
+Remember: analytical, understated, no hype language. Name specific competitors in THE PRESSURE. Reflect ${agentName}'s perspective on ${agentDomain}.
 `.trim();
 
   return withFallback(WRITER_SYSTEM_PROMPT, userPrompt, WriterOutputSchema, { temperature: 0.3 });
@@ -41,11 +48,12 @@ Remember: analytical, understated, no hype language. Name specific competitors i
 /**
  * Assemble the full post text from the 4 sections.
  */
-export function assemblePostText(output: WriterOutput): string {
+export function assemblePostText(output: WriterOutput, agentName = 'PHEONIXZ'): string {
+  const takeHeader = `${agentName.toUpperCase()}'S TAKE`;
   return [
     `THE MOVE\n${output.move}`,
     `THE ANGLE\n${output.angle}`,
     `THE PRESSURE\n${output.pressure}`,
-    `PHEONIXZ'S TAKE\n${output.take}`,
+    `${takeHeader}\n${output.take}`,
   ].join('\n\n');
 }

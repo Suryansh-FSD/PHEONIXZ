@@ -24,8 +24,14 @@
 .DS_Store
 *.pem
 .agents/
+.agent/
 .supabase/
 .aicb/
+.kilocode/
+.vscode/
+.cursorrules
+.windsurfrules
+.kilocoderules
 skills-lock.json
 
 # debug

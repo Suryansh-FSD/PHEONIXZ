@@ -14,6 +14,22 @@ export interface RunRow {
   created_at: string;
 }
 
+export async function getActiveRunForAgent(agentId: string): Promise<RunRow | null> {
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { data, error } = await db
+    .from('runs')
+    .select()
+    .eq('agent_id', agentId)
+    .eq('status', 'running')
+    .gte('started_at', fiveMinutesAgo)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) return null;
+  return data;
+}
+
 export async function createRun(agentId: string): Promise<RunRow> {
   const { data, error } = await db
     .from('runs')

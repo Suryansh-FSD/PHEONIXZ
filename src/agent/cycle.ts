@@ -1,4 +1,4 @@
-import { createRun, completeRun, failRun } from '@/db/runs';
+import { createRun, completeRun, failRun, getActiveRunForAgent } from '@/db/runs';
 import { getAgentById } from '@/db/agents';
 import { insertCandidate, candidateExistsByHash } from '@/db/candidates';
 import { insertDecision, getRecentDecisions } from '@/db/decisions';
@@ -43,17 +43,17 @@ Source: ${item.source}
 /**
  * runAutonomousCycle — 16-step pipeline.
  *
- * Step 1:  Create run record
+ * Step 1:  Create run record (with lock check)
  * Step 2:  Fetch + cluster sources
  * Step 3:  Normalize each item (AI Call 1)
  * Step 4:  Filter product moves
  * Step 5:  Deduplicate by content_hash
  * Step 6:  Store new candidates
  * Step 7:  Retrieve Breeth memory per candidate
- * Step 8:  Score each candidate (AI Call 2)
+ * Step 8:  Score each candidate (AI Call 2, with agent persona)
  * Step 9:  Persist decisions
  * Step 10: Check rate limit
- * Step 11: Generate post (AI Call 3)
+ * Step 11: Generate post (AI Call 3, with agent persona)
  * Step 12: Quality check (AI Call 4)
  * Step 13: Publish to Supabase
  * Step 14: Update Breeth memory
@@ -71,15 +71,18 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
       throw new Error(`Agent not found: ${agentId}`);
     }
 
+    const activeRun = typeof getActiveRunForAgent === 'function'
+      ? await Promise.resolve(getActiveRunForAgent(agentId)).catch(() => null)
+      : null;
+    if (activeRun) {
+      console.log(`[cycle] Agent ${agentId} already has an active run ${activeRun.id}. Skipping.`);
+      return stats;
+    }
+
     const run = await createRun(agentId);
     runId = run.id;
-    console.log(`[cycle] Started run ${runId} for agent "${agent.name}"`);
-  } catch (err) {
-    console.error('[cycle] Failed to initialize run:', err);
-    throw err; // Unrecoverable
-  }
+    console.log(`[cycle] Started run ${runId} for agent "${agent.name}" (${agent.domain})`);
 
-  try {
     // ── Step 2: Fetch + cluster sources ──────────────────────────────────────
     console.log('[cycle] Step 2: Fetching sources...');
     const { items: rawItems } = await fetchAndClusterSources();
@@ -122,16 +125,16 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
 
         // ── Step 6: Store candidate ────────────────────────────────────────
         const candidate = await insertCandidate({
-          agent_id:     agentId,
-          title:        normalized.title,
-          summary:      normalized.summary,
-          company:      normalized.company,
-          move_type:    normalized.moveType,
-          url:          rawItem.url,
-          source:       rawItem.source,
-          source_id:    rawItem.sourceId,
+          agent_id:      agentId,
+          title:         normalized.title,
+          summary:       normalized.summary,
+          company:       normalized.company,
+          move_type:     normalized.moveType,
+          url:           rawItem.url,
+          source:        rawItem.source,
+          source_id:     rawItem.sourceId,
           discovered_at: rawItem.publishedAt,
-          content_hash: hash,
+          content_hash:  hash,
         });
 
         stats.candidatesFound++;
@@ -146,7 +149,11 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
 
         // ── Step 8: Editorial score (AI Call 2) ───────────────────────────
         const decision = await withTimeout(
-          () => scoreCandidate(candidate, { recentDecisions, memoryContext }),
+          () => scoreCandidate(candidate, {
+            recentDecisions,
+            memoryContext,
+            agent: { name: agent.name, domain: agent.domain },
+          }),
           AI_TIMEOUT_MS,
           `editorial:${candidate.id}`
         ).catch((err) => {
@@ -186,7 +193,6 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
 
         if (decision.decision === 'watch') {
           stats.watched++;
-          // Store meaningful move memory even for watch decisions
           if (decision.computedTotal > 60) {
             await Promise.resolve(storeCompetitiveMove(candidate, decision)).catch(() => {});
           }
@@ -204,7 +210,6 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         const allowed = await isPublishingAllowed(agentId).catch(() => false);
         if (!allowed) {
           console.log('[cycle] Rate limit active — downgrading publish to watch');
-          // Insert a watch decision instead of publishing
           await insertDecision({
             candidate_id:          decisionRow.candidate_id,
             agent_id:              decisionRow.agent_id,
@@ -226,7 +231,7 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         // ── Step 11: Generate post (AI Call 3) ────────────────────────────
         console.log(`[cycle] Writing post for: "${candidate.title}"`);
         const writerOutput = await withTimeout(
-          () => generatePost(candidate, decision, memoryContext),
+          () => generatePost(candidate, decision, memoryContext, { name: agent.name, domain: agent.domain }),
           AI_TIMEOUT_MS,
           `writer:${candidate.id}`
         ).catch((err) => {
@@ -254,7 +259,7 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         }
 
         // ── Step 13: Publish to Supabase ──────────────────────────────────
-        const postText = assemblePostText(writerOutput);
+        const postText = assemblePostText(writerOutput, agent.name);
 
         const post = await insertPost({
           agent_id:             agentId,
@@ -271,7 +276,6 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         stats.published++;
         console.log(`[cycle] ✓ Published post ${post?.id ?? 'stored'}: "${candidate.title}"`);
 
-        // Update recent posts for duplicate detection in this cycle
         recentPostTexts.splice(0, 0, postText);
         if (recentPostTexts.length > 5) recentPostTexts.splice(5);
 
@@ -280,7 +284,6 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
         await Promise.resolve(storePheonixzJudgment(post, candidate, decision)).catch(() => {});
 
       } catch (itemErr) {
-        // Item-level failure — log and continue cycle
         console.error(`[cycle] Unhandled error for item "${rawItem.title}":`, itemErr);
         stats.errors++;
       }
@@ -297,7 +300,6 @@ export async function runAutonomousCycle(agentId: string): Promise<CycleResult> 
     return stats;
 
   } catch (cycleErr) {
-    // Cycle-level failure — record and rethrow
     const message = cycleErr instanceof Error ? cycleErr.message : 'Cycle failed';
     console.error('[cycle] Fatal error:', message);
     if (runId) await failRun(runId, message).catch(() => {});

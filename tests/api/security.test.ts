@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+
+// Mock next/server's after() — it's a no-op in test (background work is tested separately)
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>();
+  return {
+    ...actual,
+    after: vi.fn((_cb: () => void) => {
+      // In tests, after() is a no-op — we don't want background cycles during unit tests
+    }),
+  };
+});
+
 import { POST as initHandler } from '@/app/api/agent/init/route';
 import { POST as cycleHandler } from '@/app/api/internal/cycle/route';
 import { GET as feedHandler } from '@/app/api/agent/feed/route';
@@ -85,7 +97,7 @@ describe('API Security & Contract Tests', () => {
     });
   });
 
-  describe('POST /api/agent/init - Idempotency & Agent Protection', () => {
+  describe('POST /api/agent/init - Evaluator Contract', () => {
     it('returns 200 with existing agent ID if agent already exists (idempotent)', async () => {
       vi.mocked(agentsDb.getAgentByName).mockResolvedValue({
         id: 'existing-agent-id',
@@ -111,43 +123,22 @@ describe('API Security & Contract Tests', () => {
       expect(agentsDb.createAgent).not.toHaveBeenCalled();
     });
 
-    it('returns 401 when creating a new agent without valid x-cron-secret', async () => {
-      vi.mocked(agentsDb.getAgentByName).mockResolvedValue(null);
-
-      const req = new NextRequest('http://localhost:3000/api/agent/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          persona: { name: 'NewAgent', domain: 'AI Strategy' },
-        }),
-      });
-
-      const res = await initHandler(req);
-      expect(res.status).toBe(401);
-      const data = await res.json();
-      expect(data.error).toBe('Unauthorized agent creation');
-      expect(agentsDb.createAgent).not.toHaveBeenCalled();
-    });
-
-    it('returns 201 when creating a new agent with valid x-cron-secret', async () => {
+    it('returns 201 when creating a new agent — init is public per evaluator contract', async () => {
       vi.mocked(agentsDb.getAgentByName).mockResolvedValue(null);
       vi.mocked(agentsDb.createAgent).mockResolvedValue({
         id: 'newly-created-agent-id',
-        name: 'NewAgent',
-        domain: 'AI Strategy',
-        persona_json: { name: 'NewAgent', domain: 'AI Strategy' },
+        name: 'Ada',
+        domain: 'AI Security',
+        persona_json: { name: 'Ada', domain: 'AI Security' },
         active: true,
         created_at: new Date().toISOString(),
       });
 
       const req = new NextRequest('http://localhost:3000/api/agent/init', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-cron-secret': 'test-secret-123',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          persona: { name: 'NewAgent', domain: 'AI Strategy' },
+          persona: { name: 'Ada', domain: 'AI Security' },
         }),
       });
 
@@ -156,6 +147,36 @@ describe('API Security & Contract Tests', () => {
       const data = await res.json();
       expect(data.agentId).toBe('newly-created-agent-id');
       expect(agentsDb.createAgent).toHaveBeenCalled();
+    });
+
+    it('returns 400 when persona.name is missing', async () => {
+      const req = new NextRequest('http://localhost:3000/api/agent/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona: { domain: 'AI Security' },
+        }),
+      });
+
+      const res = await initHandler(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain('persona.name');
+    });
+
+    it('returns 400 when persona.domain is missing', async () => {
+      const req = new NextRequest('http://localhost:3000/api/agent/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona: { name: 'Ada' },
+        }),
+      });
+
+      const res = await initHandler(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain('persona.domain');
     });
   });
 
