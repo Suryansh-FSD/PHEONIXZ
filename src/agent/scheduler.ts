@@ -1,6 +1,7 @@
 import { db } from '@/db/client';
 import { runAutonomousCycle } from './cycle';
 import { getActiveRunForAgent } from '@/db/runs';
+import { createAgent } from '@/db/agents';
 
 const DEFAULT_INTERVAL_MS = 60_000;
 const FIRST_TICK_DELAY_MS = 5_000;
@@ -11,8 +12,6 @@ const inFlightAgents = new Set<string>();
 
 /**
  * Interval between scheduler ticks, from AUTONOMOUS_INTERVAL_MS.
- * Env-driven so the production cadence changes without a code change
- * (e.g. AUTONOMOUS_INTERVAL_MS=60000 for local verification).
  */
 export function getSchedulerIntervalMs(): number {
   const parsed = Number(process.env.AUTONOMOUS_INTERVAL_MS);
@@ -36,13 +35,18 @@ export async function executeSchedulerTick(): Promise<void> {
   isExecutingTick = true;
 
   try {
-    const { data: activeAgents, error } = await db
+    let { data: activeAgents, error } = await db
       .from('agents')
       .select('id, name, domain')
       .eq('active', true);
 
     if (error || !activeAgents || activeAgents.length === 0) {
-      return;
+      try {
+        const defaultAgent = await createAgent({ name: 'PhoenixZ', domain: 'AI/Technology' });
+        activeAgents = [{ id: defaultAgent.id, name: defaultAgent.name, domain: defaultAgent.domain }];
+      } catch {
+        return;
+      }
     }
 
     for (const agent of activeAgents) {
@@ -91,7 +95,6 @@ export function startAutonomousScheduler(intervalMs = getSchedulerIntervalMs()):
 
   console.log(`[scheduler] Starting autonomous background scheduler (interval: ${intervalMs}ms)...`);
 
-  // Run first tick after short delay (5s) to allow DB connection to initialize
   setTimeout(() => {
     executeSchedulerTick().catch((err) => console.error('[scheduler] Initial tick error:', err));
   }, FIRST_TICK_DELAY_MS);
@@ -100,7 +103,6 @@ export function startAutonomousScheduler(intervalMs = getSchedulerIntervalMs()):
     executeSchedulerTick().catch((err) => console.error('[scheduler] Periodic tick error:', err));
   }, intervalMs);
 
-  // Never hold the process open on our account — the HTTP server owns the lifecycle.
   schedulerInterval.unref?.();
 }
 

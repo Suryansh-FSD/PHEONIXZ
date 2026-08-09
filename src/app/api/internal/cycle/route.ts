@@ -6,30 +6,40 @@ export const maxDuration = 60;
 
 function verifyAuth(req: NextRequest): boolean {
   const expectedSecret = process.env.CRON_SECRET;
-  if (!expectedSecret) return true; // If no CRON_SECRET set, allow calls
 
-  // 1. Check for valid CRON_SECRET header (for external cron / scheduler calls)
-  const incomingSecret =
-    req.headers.get('x-cron-secret') ||
-    req.headers.get('authorization')?.replace('Bearer ', '');
+  if (expectedSecret) {
+    // 1. Check for valid CRON_SECRET header (for external cron / scheduler calls)
+    const incomingSecret =
+      req.headers.get('x-cron-secret') ||
+      req.headers.get('authorization')?.replace('Bearer ', '');
 
-  if (incomingSecret === expectedSecret) {
-    return true;
+    if (incomingSecret === expectedSecret) {
+      return true;
+    }
+
+    // 2. Allow same-origin dashboard UI requests
+    const secFetchSite = req.headers.get('sec-fetch-site');
+    if (secFetchSite === 'same-origin' || secFetchSite === 'same-site') {
+      return true;
+    }
+
+    const origin = req.headers.get('origin') || req.headers.get('referer');
+    const host = req.headers.get('host');
+    if (origin && host && origin.includes(host)) {
+      return true;
+    }
+
+    return false;
   }
 
-  // 2. Allow same-origin dashboard UI requests
-  const secFetchSite = req.headers.get('sec-fetch-site');
-  if (secFetchSite === 'same-origin' || secFetchSite === 'same-site') {
-    return true;
+  // If CRON_SECRET is not configured in production, fail closed for security
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('[/api/internal/cycle] WARNING: CRON_SECRET is not set in production. Endpoint failing closed.');
+    return false;
   }
 
-  const origin = req.headers.get('origin') || req.headers.get('referer');
-  const host = req.headers.get('host');
-  if (origin && host && origin.includes(host)) {
-    return true;
-  }
-
-  return false;
+  // Development environment fallback
+  return true;
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +69,7 @@ export async function POST(req: NextRequest) {
   // If no agentId specified, run tick across all active agents
   try {
     await executeSchedulerTick();
-    return NextResponse.json({ success: true, message: 'Tick executed for all active agents' }, { status: 200 });
+    return NextResponse.json({ success: true, message: 'Tick executed for active agents' }, { status: 200 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
