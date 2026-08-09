@@ -1,4 +1,4 @@
-<!-- AICB:BEGIN {"version":1,"target":".github/copilot-instructions.md","generatedAt":"2026-08-09T12:39:04.030Z","hash":"sha256:689fa43d4066d01abfbae7ef21cb7d18a3aacc76f7a67385c2d4ff34250a76f0"} -->
+<!-- AICB:BEGIN {"version":1,"target":".github/copilot-instructions.md","generatedAt":"2026-08-09T12:58:04.127Z","hash":"sha256:2d5ec89115ce1c95499522c62dc69ecb2a41b9d7dc462376e207f5af87ff69a4"} -->
 # AI Context Bridge — Handoff
 
 Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
@@ -15,7 +15,6 @@ Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
 - `.github/copilot-instructions.md` _(spec)_ — GitHub Copilot instructions (.github)
 
 ## Working files (current focus)
-- `prompts.md` _(auto:dwell)_
 - `.github/workflows/autonomous-cycle.yml` _(auto:dwell)_
 
 ## Skills

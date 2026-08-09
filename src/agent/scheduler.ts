@@ -35,10 +35,12 @@ export async function executeSchedulerTick(): Promise<void> {
   isExecutingTick = true;
 
   try {
-    let { data: activeAgents, error } = await db
+    const { data, error } = await db
       .from('agents')
       .select('id, name, domain')
       .eq('active', true);
+
+    let activeAgents = data;
 
     if (error || !activeAgents || activeAgents.length === 0) {
       try {

@@ -6,6 +6,7 @@ import {
   FeedResponse,
   SourceHealth,
   SearchIntelligenceResult,
+  MoveType,
 } from "@/types/phoenixz";
 
 export interface AgentInfo {
@@ -104,7 +105,7 @@ export async function fetchAgentFeed(agentId: string): Promise<FeedItem[]> {
       id: post.id,
       createdAt: post.createdAt,
       company,
-      moveType: "launch",
+      moveType: (post.moveType || "launch") as MoveType,
       title: firstLine,
       moveText: moveText || post.text,
       angleText: angleText,

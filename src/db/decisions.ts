@@ -39,6 +39,16 @@ export async function getDecisionsByAgent(agentId: string, limit = 50): Promise<
     .limit(limit);
 
   if (error) throw new Error(`getDecisionsByAgent: ${error.message}`);
+
+  if (data && data.length === 0 && agentId) {
+    const { data: fallbackData } = await db
+      .from('decisions')
+      .select()
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return fallbackData ?? [];
+  }
+
   return data ?? [];
 }
 
@@ -53,5 +63,15 @@ export async function getRecentDecisions(agentId: string, hours = 48): Promise<D
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(`getRecentDecisions: ${error.message}`);
+
+  if (data && data.length === 0 && agentId) {
+    const { data: fallbackData } = await db
+      .from('decisions')
+      .select()
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+    return fallbackData ?? [];
+  }
+
   return data ?? [];
 }

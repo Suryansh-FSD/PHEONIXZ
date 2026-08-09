@@ -111,12 +111,15 @@ export const AppShell: React.FC = () => {
         });
 
         const published = feedPosts.length;
+        const rejected = decs.filter((d) => d.decision === "reject").length;
+        const watching = decs.filter((d) => d.decision === "watch").length;
         const observed = published + decs.length + (runs[0]?.candidatesFound || 0);
+
         setStatStrip({
-          observed: observed || 12,
-          rejected: decs.filter((d) => d.decision === "reject").length || 1,
-          watching: decs.filter((d) => d.decision === "watch").length || 7,
-          published: published || 1,
+          observed,
+          rejected,
+          watching,
+          published,
         });
       } catch (err) {
         console.warn("Poll feed error:", err);

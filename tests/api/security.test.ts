@@ -19,6 +19,18 @@ import * as agentsDb from '@/db/agents';
 import * as cycleAgent from '@/agent/cycle';
 import * as postsDb from '@/db/posts';
 
+vi.mock('@/db/client', () => ({
+  db: {
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        in: vi.fn().mockReturnValue({
+          then: vi.fn((cb) => Promise.resolve(cb({ data: [] }))),
+        }),
+      }),
+    }),
+  },
+}));
+
 vi.mock('@/db/agents', () => ({
   getAgentByName: vi.fn(),
   createAgent: vi.fn(),

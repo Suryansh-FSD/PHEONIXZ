@@ -12,6 +12,7 @@ export interface PostRow {
   rationale: string;
   sources: string[];
   created_at: string;
+  move_type?: string;
 }
 
 export async function insertPost(
@@ -27,15 +28,26 @@ export async function insertPost(
   return post;
 }
 
-export async function getPostsByAgent(agentId: string, limit = 50): Promise<PostRow[]> {
-  const { data, error } = await db
-    .from('posts')
-    .select()
-    .eq('agent_id', agentId)
+export async function getPostsByAgent(agentId?: string, limit = 50): Promise<PostRow[]> {
+  let query = db.from('posts').select();
+  if (agentId) {
+    query = query.eq('agent_id', agentId);
+  }
+  const { data, error } = await query
     .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(`getPostsByAgent: ${error.message}`);
+
+  if (data && data.length === 0 && agentId) {
+    const { data: fallbackData } = await db
+      .from('posts')
+      .select()
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return fallbackData ?? [];
+  }
+
   return data ?? [];
 }
 

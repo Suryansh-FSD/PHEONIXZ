@@ -215,6 +215,7 @@ export interface FeedResponse {
     id: string;
     createdAt: string;
     text: string;
+    moveType?: string;
     move?: string;
     angle?: string;
     pressure?: string;
