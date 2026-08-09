@@ -2,6 +2,7 @@ import type { MemoryRecord, MemoryResult, MemoryContext, CompetitiveThread, Memo
 import type { CandidateRow } from '@/db/candidates';
 import type { ScoredDecision } from '@/schemas/decision';
 import type { PostRow } from '@/db/posts';
+import { db } from '@/db/client';
 
 const BREETH_BASE_URL = process.env.BREETH_BASE_URL ?? 'https://mcp.thebreeth.com';
 const MAX_MEMORY_RESULTS = 5;
@@ -23,7 +24,7 @@ function breethHeaders() {
   };
 }
 
-async function breethRetrieve(
+export async function breethRetrieve(
   query: string,
   category?: MemoryCategory,
   limit = MAX_MEMORY_RESULTS
@@ -55,7 +56,7 @@ async function breethRetrieve(
   }
 }
 
-async function breethStore(memory: MemoryRecord): Promise<void> {
+export async function breethStore(memory: MemoryRecord): Promise<void> {
   const headers = breethHeaders();
   if (!headers) {
     console.warn('[breeth] Not configured — skipping memory store');
@@ -78,16 +79,64 @@ async function breethStore(memory: MemoryRecord): Promise<void> {
   }
 }
 
+/**
+ * Fallback to query Supabase structured memory when Breeth returns empty results or is unconfigured.
+ */
+export async function memoryFallbackFromSupabase(candidate: CandidateRow): Promise<MemoryResult[]> {
+  try {
+    const { data: posts, error } = await db
+      .from('posts')
+      .select('id, text, take_text, created_at, agent_id')
+      .eq('agent_id', candidate.agent_id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error || !posts || posts.length === 0) return [];
+
+    const companyLower = candidate.company.toLowerCase();
+    const matching = posts.filter(
+      (p) =>
+        p.text.toLowerCase().includes(companyLower) ||
+        p.take_text.toLowerCase().includes(companyLower)
+    );
+
+    const listToUse = matching.length > 0 ? matching : posts.slice(0, 3);
+
+    return listToUse.map((p) => ({
+      id: p.id,
+      category: 'pheonixz_judgment' as const,
+      content: `Historical publication (${p.created_at.slice(0, 10)}): ${p.take_text || p.text.slice(0, 150)}`,
+      tags: [candidate.company, candidate.move_type, 'supabase_fallback', p.agent_id],
+      metadata: { postId: p.id, agentId: p.agent_id, date: p.created_at },
+    }));
+  } catch (err) {
+    console.warn('[breeth] Supabase memory fallback error (non-fatal):', err);
+    return [];
+  }
+}
+
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * Retrieve relevant competitive memory for a candidate.
- * Returns empty context gracefully if Breeth is unavailable.
+ * Queries Breeth semantic memory first; falls back to Supabase structured memory.
  */
 export async function retrieveMemory(candidate: CandidateRow): Promise<MemoryContext> {
   const query = `${candidate.company} ${candidate.move_type} competitive`;
 
-  const results = await breethRetrieve(query, undefined, MAX_MEMORY_RESULTS);
+  let results = await breethRetrieve(query, undefined, MAX_MEMORY_RESULTS);
+
+  // Agent isolation filter if agentId present in metadata
+  if (results.length > 0 && candidate.agent_id) {
+    results = results.filter(
+      (r) => !r.metadata?.agentId || r.metadata?.agentId === candidate.agent_id
+    );
+  }
+
+  // Fallback to Supabase structured memory if Breeth returns no results
+  if (results.length === 0) {
+    results = await memoryFallbackFromSupabase(candidate);
+  }
 
   const formattedContext =
     results.length === 0
@@ -110,9 +159,10 @@ export async function storeCompetitiveMove(
   await breethStore({
     category: 'competitive_move',
     content: `${candidate.company} made a ${candidate.move_type} move: "${candidate.title}". Score: ${decision.computedTotal}/100. Decision: ${decision.decision}. ${decision.reason}`,
-    tags: [candidate.company, candidate.move_type, 'pheonixz_judgment'],
+    tags: [candidate.company, candidate.move_type, 'pheonixz_judgment', candidate.agent_id],
     metadata: {
       candidateId: candidate.id,
+      agentId: candidate.agent_id,
       score: decision.computedTotal,
       decision: decision.decision,
       date: candidate.discovered_at,
@@ -131,9 +181,10 @@ export async function storePheonixzJudgment(
   await breethStore({
     category: 'pheonixz_judgment',
     content: `PheonixZ published on ${candidate.company}: "${candidate.title}". Take: ${post.take_text}`,
-    tags: [candidate.company, candidate.move_type, 'published'],
+    tags: [candidate.company, candidate.move_type, 'published', post.agent_id],
     metadata: {
       postId: post.id,
+      agentId: post.agent_id,
       score: decision.computedTotal,
       date: post.created_at,
     },

@@ -2,8 +2,30 @@ import { db } from '@/db/client';
 import { runAutonomousCycle } from './cycle';
 import { getActiveRunForAgent } from '@/db/runs';
 
+const DEFAULT_INTERVAL_MS = 60_000;
+const FIRST_TICK_DELAY_MS = 5_000;
+
 let schedulerInterval: NodeJS.Timeout | null = null;
 let isExecutingTick = false;
+const inFlightAgents = new Set<string>();
+
+/**
+ * Interval between scheduler ticks, from AUTONOMOUS_INTERVAL_MS.
+ * Env-driven so the production cadence changes without a code change
+ * (e.g. AUTONOMOUS_INTERVAL_MS=60000 for local verification).
+ */
+export function getSchedulerIntervalMs(): number {
+  const parsed = Number(process.env.AUTONOMOUS_INTERVAL_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_INTERVAL_MS;
+}
+
+/**
+ * The in-process scheduler is on by default. Set AUTONOMOUS_SCHEDULER_ENABLED=false
+ * to rely solely on external triggers (Vercel Cron / GitHub Actions).
+ */
+export function isSchedulerEnabled(): boolean {
+  return process.env.AUTONOMOUS_SCHEDULER_ENABLED !== 'false';
+}
 
 /**
  * Executes one tick of the background scheduler.
@@ -24,6 +46,13 @@ export async function executeSchedulerTick(): Promise<void> {
     }
 
     for (const agent of activeAgents) {
+      // Overlap guard — the same agent never executes two cycles at once.
+      if (inFlightAgents.has(agent.id)) {
+        console.log(`[scheduler] Agent "${agent.name}" (${agent.id}) cycle already in flight. Skipping.`);
+        continue;
+      }
+      inFlightAgents.add(agent.id);
+
       try {
         const activeRun = await getActiveRunForAgent(agent.id);
         if (activeRun) {
@@ -35,7 +64,10 @@ export async function executeSchedulerTick(): Promise<void> {
         const result = await runAutonomousCycle(agent.id);
         console.log(`[scheduler] Cycle complete for agent "${agent.name}":`, result);
       } catch (err) {
+        // Failure isolation — log and continue; the next scheduled tick still runs.
         console.error(`[scheduler] Cycle failed for agent "${agent.name}":`, err);
+      } finally {
+        inFlightAgents.delete(agent.id);
       }
     }
   } catch (err) {
@@ -49,17 +81,36 @@ export async function executeSchedulerTick(): Promise<void> {
  * Starts the durable background scheduler in Node.js server runtime.
  * Idempotent — will not start multiple intervals.
  */
-export function startAutonomousScheduler(intervalMs = 60_000): void {
+export function startAutonomousScheduler(intervalMs = getSchedulerIntervalMs()): void {
   if (schedulerInterval) return;
 
+  if (!isSchedulerEnabled()) {
+    console.log('[scheduler] Disabled via AUTONOMOUS_SCHEDULER_ENABLED=false. Relying on external cron triggers.');
+    return;
+  }
+
   console.log(`[scheduler] Starting autonomous background scheduler (interval: ${intervalMs}ms)...`);
-  
+
   // Run first tick after short delay (5s) to allow DB connection to initialize
   setTimeout(() => {
     executeSchedulerTick().catch((err) => console.error('[scheduler] Initial tick error:', err));
-  }, 5000);
+  }, FIRST_TICK_DELAY_MS);
 
   schedulerInterval = setInterval(() => {
     executeSchedulerTick().catch((err) => console.error('[scheduler] Periodic tick error:', err));
   }, intervalMs);
+
+  // Never hold the process open on our account — the HTTP server owns the lifecycle.
+  schedulerInterval.unref?.();
+}
+
+/**
+ * Stops the background scheduler. Safe to call when not running.
+ */
+export function stopAutonomousScheduler(): void {
+  if (schedulerInterval) {
+    clearInterval(schedulerInterval);
+    schedulerInterval = null;
+  }
+  inFlightAgents.clear();
 }

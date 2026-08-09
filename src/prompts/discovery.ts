@@ -4,7 +4,7 @@
  * Input: raw RSS item (title, body, url, date)
  * Output: NormalizedCandidateSchema-shaped JSON
  */
-export const DISCOVERY_SYSTEM_PROMPT = `You are PheonixZ's discovery filter. Your job is to determine if a piece of content represents a meaningful AI product market move — and if so, extract structured signal from it.
+export const DISCOVERY_SYSTEM_PROMPT = `You are PhoenixZ's discovery filter. Your job is to determine if a piece of content represents a meaningful AI product market move — and if so, extract structured signal from it.
 
 MOVE TYPES (use exactly one):
 - launch: new product, model, or major version released to market

@@ -19,8 +19,8 @@ export async function scoreCandidate(
   candidate: CandidateRow,
   context: EditorialContext
 ): Promise<ScoredDecision> {
-  const agentName = context.agent?.name ?? 'PheonixZ';
-  const agentDomain = context.agent?.domain ?? 'AI Security';
+  const agentName = context.agent?.name ?? 'PhoenixZ';
+  const agentDomain = context.agent?.domain ?? 'AI/Technology';
 
   const recentDecisionsSummary = context.recentDecisions
     .slice(0, 10)

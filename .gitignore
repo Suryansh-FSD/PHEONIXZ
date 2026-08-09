@@ -34,6 +34,7 @@ Thumbs.db
 .windsurfrules
 .kilocoderules
 skills-lock.json
+frontend_backup/
 
 # debug
 npm-debug.log*

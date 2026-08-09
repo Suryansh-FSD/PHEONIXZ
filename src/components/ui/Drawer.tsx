@@ -29,32 +29,32 @@ export const Drawer: React.FC<DrawerProps> = ({
   if (!isOpen) return null;
 
   const positionClasses =
-    position === "right" ? "right-0 border-l border-zinc-800" : "left-0 border-r border-zinc-800";
+    position === "right" ? "right-0 border-l border-gray-200" : "left-0 border-r border-gray-200";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 animate-fadeIn font-mono">
+    <div className="fixed inset-0 z-50 bg-black/40 animate-fadeIn font-mono">
       <div
-        className={`fixed top-0 bottom-0 w-full max-w-md bg-zinc-950 shadow-2xl flex flex-col ${positionClasses}`}
+        className={`fixed top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col ${positionClasses}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "drawer-title" : undefined}
       >
-        <div className="bg-zinc-900 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+        <div className="bg-white px-5 py-4 border-b border-gray-200 flex items-center justify-between">
           {title && (
-            <h3 id="drawer-title" className="text-sm font-bold text-zinc-100 uppercase tracking-wide">
+            <h3 id="drawer-title" className="text-xs font-mono font-bold text-gray-900 uppercase tracking-tight">
               {title}
             </h3>
           )}
           <button
             onClick={onClose}
             aria-label="Close drawer"
-            className="p-1 text-zinc-400 hover:text-white rounded-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 cursor-pointer"
+            className="p-1 text-gray-400 hover:text-gray-900 rounded-md cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 p-4 text-xs text-zinc-300 overflow-y-auto">{children}</div>
+        <div className="flex-1 p-5 text-xs text-gray-700 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -1,334 +1,220 @@
 "use client";
 
 import React, { useState } from "react";
+import { initAgent } from "@/services/agentApi";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Modal } from "@/components/ui/Modal";
+import { PhoenixZBrand } from "@/components/ui/PhoenixZBrand";
 import {
-  Zap,
-  Target,
-  Flame,
-  Award,
-  ArrowRight,
   ShieldCheck,
-  Cpu,
+  ArrowRight,
+  Sparkles,
+  Layers,
   Database,
-  GitCommit,
+  Search,
   CheckCircle2,
-  Sliders,
-  ExternalLink,
-  Activity,
 } from "lucide-react";
 
-export interface LandingPageProps {
-  onEnterDashboard?: () => void;
+interface LandingPageProps {
+  onAgentInitialized: (agentId: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterDashboard }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onAgentInitialized }) => {
   const [isInitModalOpen, setIsInitModalOpen] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  const handleInitializeAgent = () => {
-    setIsInitialized(true);
-    setTimeout(() => {
-      setIsInitModalOpen(false);
-      if (onEnterDashboard) onEnterDashboard();
-    }, 1200);
+  const handleInitializeAgent = async () => {
+    setIsInitializing(true);
+    try {
+      const res = await initAgent("PhoenixZ", "AI/Technology");
+      if (res?.agentId) {
+        localStorage.setItem("phoenixz_agent_id", res.agentId);
+        onAgentInitialized(res.agentId);
+      }
+    } catch (err) {
+      console.error("Failed to initialize agent:", err);
+    } finally {
+      setIsInitializing(false);
+    }
   };
 
+  const agentLoopSteps = [
+    {
+      num: "01",
+      name: "DISCOVER",
+      title: "Live Information Ingestion",
+      description: "Continuously monitors live RSS feeds and market sources for concrete AI product actions.",
+      icon: Search,
+    },
+    {
+      num: "02",
+      name: "ANALYZE",
+      title: "Candidate Normalization",
+      description: "Extracts verifiable claims, evidence quality, and company move types.",
+      icon: Layers,
+    },
+    {
+      num: "03",
+      name: "DECIDE",
+      title: "Editorial Scoring Rubric",
+      description: "Evaluates candidates against a 100-point rubric. PUBLISH (72+), WATCH (55-71), REJECT (<55).",
+      icon: ShieldCheck,
+    },
+    {
+      num: "04",
+      name: "VERIFY",
+      title: "Quality & Memory Gate",
+      description: "Retrieves Breeth semantic memory, checks duplicates, and validates analyst voice.",
+      icon: Database,
+    },
+    {
+      num: "05",
+      name: "PUBLISH",
+      title: "Autonomous Brief Generation",
+      description: "Generates structured 4-part intelligence briefs and updates vector memory.",
+      icon: CheckCircle2,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-phoenix-bg text-phoenix-text font-sans antialiased selection:bg-orange-500 selection:text-white">
-      {/* Initialization Modal */}
-      <Modal
-        isOpen={isInitModalOpen}
-        onClose={() => setIsInitModalOpen(false)}
-        title="Initialize PheonixZ Agent Persona"
-        footer={
-          <Button variant="primary" onClick={handleInitializeAgent} isLoading={isInitialized}>
-            {isInitialized ? "INITIALIZING…" : "START AGENT ENGINE"}
-          </Button>
-        }
-      >
-        <div className="space-y-4 font-mono text-xs">
-          <p className="text-phoenix-muted">
-            Initializes an autonomous PheonixZ agent persona instance configured for AI Product Strategy & Competitive Intelligence.
-          </p>
-          <div className="bg-phoenix-elevated p-3 border border-phoenix-border rounded-xs space-y-2">
-            <div className="flex justify-between">
-              <span className="text-phoenix-tertiary">Agent ID:</span>
-              <span className="font-bold text-phoenix-text">pz-agent-001</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-phoenix-tertiary">Strategic Lens:</span>
-              <span className="font-bold text-phoenix-accent">Pricing & Leverage Shifts</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-phoenix-tertiary">Cycle Frequency:</span>
-              <span className="font-bold text-phoenix-text">Every ~15 minutes</span>
-            </div>
-          </div>
-        </div>
-      </Modal>
+    <div className="min-h-screen bg-[#FAFBFC] text-gray-900 font-sans antialiased selection:bg-orange-500 selection:text-white flex flex-col justify-between">
+      {/* Top Navigation Header - Top Left Brand Anchored */}
+      <header className="border-b border-gray-200 bg-white py-4 px-8 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between font-sans text-xs">
+          {/* Top-Left: Reusable Official PhoenixZ Brand Component */}
+          <a href="#" className="focus:outline-none">
+            <PhoenixZBrand showSubtitle={true} />
+          </a>
 
-      {/* Top Header Navbar */}
-      <header className="w-full bg-phoenix-bg/90 backdrop-blur-xs border-b border-phoenix-border sticky top-0 z-40 py-3.5 px-4 sm:px-6 lg:px-8 font-mono text-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-phoenix-elevated border border-phoenix-border flex items-center justify-center font-bold text-phoenix-text rounded-xs">
-              PZ
-            </div>
-            <div>
-              <span className="font-bold uppercase tracking-tight text-phoenix-text text-sm">
-                PHEONIXZ
-              </span>
-              <span className="text-[10px] text-phoenix-tertiary ml-2 hidden sm:inline">
-                v1.0 • Autonomous Product Analyst
-              </span>
-            </div>
-          </div>
+          {/* Top-Right Navigation & CTA */}
+          <div className="flex items-center space-x-6">
+            <nav className="hidden md:flex items-center space-x-6 text-gray-600 font-medium text-xs">
+              <a href="#system" className="hover:text-gray-900 transition-colors">System</a>
+              <a href="#how-it-works" className="hover:text-gray-900 transition-colors">How it works</a>
+            </nav>
 
-          <div className="flex items-center space-x-4">
-            <a href="#how-it-works" className="text-phoenix-tertiary hover:text-phoenix-text transition-colors hidden md:inline">
-              How It Works
-            </a>
-            <a href="#architecture" className="text-phoenix-tertiary hover:text-phoenix-text transition-colors hidden md:inline">
-              Architecture
-            </a>
-            <Button
-              variant="primary"
-              size="sm"
+            <button
               onClick={() => setIsInitModalOpen(true)}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-sans font-bold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer shadow-xs"
             >
-              Initialize Agent
-            </Button>
+              START AGENT ENGINE
+            </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center space-y-8">
-        <div className="inline-flex items-center space-x-2 bg-phoenix-elevated border border-phoenix-border px-3 py-1 rounded-full font-mono text-xs">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-phoenix-muted font-medium uppercase tracking-wider">
-            Autonomous AI Product Analyst
-          </span>
-        </div>
+      <main className="max-w-7xl mx-auto px-6 py-16 sm:py-24 space-y-16 flex-1 flex flex-col justify-center">
+        <div className="space-y-6 text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 border border-orange-200 bg-orange-50/60 rounded-md font-mono text-xs text-orange-600 uppercase tracking-wider font-semibold">
+            <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+            <span>AUTONOMOUS INTELLIGENCE SYSTEM</span>
+          </div>
 
-        <div className="space-y-4">
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-phoenix-text uppercase font-mono">
-            PHEONIXZ
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-gray-900 uppercase leading-none font-sans">
+            TURN SIGNALS INTO <span className="text-orange-600">INTELLIGENCE.</span>
           </h1>
-          <p className="text-xl sm:text-2xl font-medium text-phoenix-muted max-w-3xl mx-auto leading-relaxed text-pretty">
-            Tracking competitive product moves before they become market consensus.
+
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed font-sans">
+            PhoenixZ continuously discovers, analyzes, evaluates, and publishes competitive intelligence.
           </p>
-        </div>
 
-        <div className="bg-phoenix-card border border-phoenix-border max-w-2xl mx-auto p-4 rounded-sm font-mono text-xs text-phoenix-tertiary italic">
-          &ldquo;A feature isn&apos;t a story. A shift in leverage is.&rdquo;
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-2 font-mono">
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => setIsInitModalOpen(true)}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Initialize Agent
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={onEnterDashboard}
-          >
-            Launch Live Dashboard
-          </Button>
-        </div>
-      </section>
-
-      {/* Live Status Preview Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between font-mono text-xs border-b border-phoenix-border pb-3">
-          <div className="flex items-center space-x-2">
-            <Activity className="w-4 h-4 text-phoenix-accent" aria-hidden="true" />
-            <h2 className="font-bold text-phoenix-text uppercase tracking-wider">Live Analyst Feed Preview</h2>
-          </div>
-          <StatusBadge status="live" label="SCANNER ACTIVE" />
-        </div>
-
-        {/* Post Preview Card */}
-        <div className="bg-phoenix-card border border-phoenix-border rounded-sm overflow-hidden shadow-md">
-          <div className="bg-phoenix-bg px-4 sm:px-6 py-3 border-b border-phoenix-border flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
-            <div className="flex items-center space-x-2">
-              <span className="font-bold text-phoenix-text uppercase">OpenAI</span>
-              <span className="text-phoenix-tertiary">•</span>
-              <Badge variant="accent">Pricing Move</Badge>
-            </div>
-            <div className="flex items-center space-x-2 text-phoenix-tertiary">
-              <span>SCORE:</span>
-              <span className="font-bold text-emerald-400 tabular-nums">92/100</span>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-6 space-y-4">
-            <h3 className="text-lg font-bold text-phoenix-text font-mono text-pretty">
-              OpenAI Cuts GPT-4o Batch API Pricing by 60% for Offline Inference
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
-              <div className="bg-phoenix-bg/60 border-l-2 border-zinc-500 p-3 rounded-r-xs">
-                <div className="flex items-center space-x-1.5 mb-1 font-mono">
-                  <Zap className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
-                  <span className="font-bold text-phoenix-muted uppercase">THE MOVE</span>
-                </div>
-                <p className="text-phoenix-text">
-                  Cut asynchronous batch inference token pricing to $1.25/M tokens.
-                </p>
-              </div>
-
-              <div className="bg-phoenix-bg/60 border-l-2 border-sky-500 p-3 rounded-r-xs">
-                <div className="flex items-center space-x-1.5 mb-1 font-mono">
-                  <Target className="w-3.5 h-3.5 text-sky-400" aria-hidden="true" />
-                  <span className="font-bold text-sky-400 uppercase">THE ANGLE</span>
-                </div>
-                <p className="text-phoenix-text">
-                  Margin play targeted at high-volume enterprise ETL using off-peak datacenter capacity.
-                </p>
-              </div>
-
-              <div className="bg-phoenix-bg/60 border-l-2 border-amber-500 p-3 rounded-r-xs">
-                <div className="flex items-center space-x-1.5 mb-1 font-mono">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
-                  <span className="font-bold text-amber-400 uppercase">THE PRESSURE</span>
-                </div>
-                <p className="text-phoenix-text">
-                  Anthropic and Cohere face immediate enterprise batch margin pressure.
-                </p>
-              </div>
-
-              <div className="bg-phoenix-bg/80 border-l-2 border-orange-500 p-3 rounded-r-xs">
-                <div className="flex items-center space-x-1.5 mb-1 font-mono">
-                  <Award className="w-3.5 h-3.5 text-orange-400" aria-hidden="true" />
-                  <span className="font-bold text-orange-400 uppercase">PHEONIXZ&apos;S TAKE</span>
-                </div>
-                <p className="text-phoenix-text font-medium italic">
-                  &ldquo;Unit economics are the story. OpenAI commoditizes batch processing.&rdquo;
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8 border-t border-phoenix-border">
-        <div className="text-center space-y-2 font-mono">
-          <span className="text-xs text-phoenix-accent font-bold uppercase tracking-widest">
-            Pipeline Architecture
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-phoenix-text uppercase">
-            How PheonixZ Operates Autonomously
-          </h2>
-          <p className="text-xs text-phoenix-muted max-w-xl mx-auto">
-            Operates continuously every ~15 minutes without requiring human intervention.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
-          <div className="bg-phoenix-card border border-phoenix-border p-4 rounded-sm space-y-2">
-            <span className="text-phoenix-accent font-bold text-sm block">01 / DISCOVERY</span>
-            <h4 className="font-bold text-phoenix-text">Fetch & Cluster</h4>
-            <p className="text-phoenix-tertiary text-[11px]">
-              Ingests official product blogs, RSS, & changelogs. Normalizes and clusters duplicate coverage into single candidates.
-            </p>
-          </div>
-
-          <div className="bg-phoenix-card border border-phoenix-border p-4 rounded-sm space-y-2">
-            <span className="text-phoenix-accent font-bold text-sm block">02 / MEMORY</span>
-            <h4 className="font-bold text-phoenix-text">Breeth Retrieval</h4>
-            <p className="text-phoenix-tertiary text-[11px]">
-              Retrieves past company history, historical thread patterns, and prior judgments before evaluation.
-            </p>
-          </div>
-
-          <div className="bg-phoenix-card border border-phoenix-border p-4 rounded-sm space-y-2">
-            <span className="text-phoenix-accent font-bold text-sm block">03 / EDITORIAL</span>
-            <h4 className="font-bold text-phoenix-text">100-Pt Scoring</h4>
-            <p className="text-phoenix-tertiary text-[11px]">
-              Scores candidates across 6 dimensions: Market Pressure, Strategic Signal, Evidence Quality, Timeliness, Persona Fit, Pattern.
-            </p>
-          </div>
-
-          <div className="bg-phoenix-card border border-phoenix-border p-4 rounded-sm space-y-2">
-            <span className="text-phoenix-accent font-bold text-sm block">04 / PUBLISH</span>
-            <h4 className="font-bold text-phoenix-text">Quality Check</h4>
-            <p className="text-phoenix-tertiary text-[11px]">
-              Runs anti-hype filter, verifies evidence quality, and publishes 4-pillar analysis to feed and cognitive memory.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Cards Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8 border-t border-phoenix-border">
-        <div className="text-center space-y-2 font-mono">
-          <span className="text-xs text-phoenix-accent font-bold uppercase tracking-widest">
-            Core Differentiators
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-phoenix-text uppercase">
-            Built for Product Strategy Leaders
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 font-mono text-xs">
-          <div className="bg-phoenix-card border border-phoenix-border p-5 rounded-sm space-y-3">
-            <ShieldCheck className="w-6 h-6 text-emerald-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-phoenix-text">Banned Hype Filter</h3>
-            <p className="text-phoenix-tertiary leading-relaxed text-[11px]">
-              Strictly rejects marketing fluff like &ldquo;game-changer&rdquo;, &ldquo;insane&rdquo;, &ldquo;huge&rdquo;, and unverified PR claims.
-            </p>
-          </div>
-
-          <div className="bg-phoenix-card border border-phoenix-border p-5 rounded-sm space-y-3">
-            <GitCommit className="w-6 h-6 text-orange-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-phoenix-text">Competitive Thread Memory</h3>
-            <p className="text-phoenix-tertiary leading-relaxed text-[11px]">
-              Tracks multi-step competitive reactions (e.g. Anthropic Artifacts $\rightarrow$ OpenAI Canvas response) over extended time horizons.
-            </p>
-          </div>
-
-          <div className="bg-phoenix-card border border-phoenix-border p-5 rounded-sm space-y-3">
-            <Sliders className="w-6 h-6 text-sky-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-phoenix-text">Transparent Decision Ledger</h3>
-            <p className="text-phoenix-tertiary leading-relaxed text-[11px]">
-              Every candidate evaluated is publicly logged with concise reasons and granular sub-scores (Published, Watching, Rejected).
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Minimal Footer */}
-      <footer className="w-full border-t border-phoenix-border bg-phoenix-bg py-8 px-4 sm:px-6 font-mono text-xs text-phoenix-tertiary">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <span className="font-bold text-phoenix-text">PHEONIXZ</span>
-            <span className="ml-2 text-[11px]">v1.0 • Autonomous Product Analyst</span>
-          </div>
-
-          <div className="flex items-center space-x-4 text-[11px]">
-            <a href="#how-it-works" className="hover:text-phoenix-text">Pipeline</a>
-            <a href="#architecture" className="hover:text-phoenix-text">Architecture</a>
-            <button onClick={onEnterDashboard} className="hover:text-phoenix-text cursor-pointer">
-              Live Dashboard
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => setIsInitModalOpen(true)}
+              className="w-full sm:w-auto px-8 py-3.5 bg-orange-600 text-white font-sans text-xs font-bold uppercase tracking-wider hover:bg-orange-700 transition-colors rounded-md flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+            >
+              <span>START AGENT ENGINE</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
+
+            <a
+              href="#how-it-works"
+              className="w-full sm:w-auto px-8 py-3.5 bg-white border border-gray-300 text-gray-700 font-sans text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors rounded-md flex items-center justify-center cursor-pointer shadow-2xs"
+            >
+              EXPLORE THE SYSTEM
+            </a>
           </div>
+        </div>
+
+        {/* Autonomous Loop Step-by-Step Architecture */}
+        <div id="how-it-works" className="border border-gray-200 bg-white p-6 sm:p-8 rounded-xl space-y-6 shadow-2xs">
+          <div className="text-center space-y-1 font-mono">
+            <span className="text-[11px] uppercase tracking-widest text-orange-600 font-bold">
+              AUTONOMOUS ARCHITECTURE
+            </span>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 uppercase font-sans">
+              The 5-Step Autonomous Agent Loop
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 pt-4">
+            {agentLoopSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.num}
+                  className="border border-gray-200 bg-gray-50/50 p-4 rounded-md flex flex-col justify-between space-y-3 font-mono text-xs hover:border-gray-300 transition-colors"
+                >
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-orange-600 font-bold text-sm font-mono">{step.num}</span>
+                    <Icon className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-bold text-[10px] text-gray-400 uppercase tracking-wider block font-mono">
+                      {step.name}
+                    </span>
+                    <h3 className="font-bold text-gray-900 text-xs leading-snug font-sans">{step.title}</h3>
+                  </div>
+                  <p className="text-[11px] font-sans text-gray-600 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white py-6 px-8 font-sans text-xs text-gray-500 text-center">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <PhoenixZBrand compact={true} showSubtitle={false} />
+          <span>Autonomous AI Security Intelligence Platform</span>
         </div>
       </footer>
+
+      {/* Initialization Modal */}
+      <Modal
+        isOpen={isInitModalOpen}
+        onClose={() => setIsInitModalOpen(false)}
+        title="Initialize PhoenixZ Agent Engine"
+        footer={
+          <Button variant="primary" onClick={handleInitializeAgent} isLoading={isInitializing}>
+            {isInitializing ? "INITIALIZING…" : "START AGENT ENGINE"}
+          </Button>
+        }
+      >
+        <div className="space-y-4 font-mono text-xs">
+          <p className="text-gray-600 font-sans">
+            Initializes an autonomous PhoenixZ agent persona instance configured for AI Security & Market Intelligence.
+          </p>
+          <div className="bg-gray-50 p-3 border border-gray-200 rounded-md space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Agent Persona:</span>
+              <span className="font-bold text-gray-900">PhoenixZ</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Strategic Domain:</span>
+              <span className="font-bold text-orange-600">AI / SECURITY</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Initial Run:</span>
+              <span className="font-bold text-emerald-600">Next.js background cycle</span>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

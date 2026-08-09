@@ -4,7 +4,7 @@ import { parseJsonResponse } from './parseJson';
 
 /**
  * Agent Router Anthropic Messages Provider (Claude Opus).
- * Implements the LLMProvider interface for PheonixZ.
+ * Implements the LLMProvider interface for PhoenixZ.
  * Uses Anthropic Messages protocol (POST /v1/messages) via AgentRouter (co.agentrouter.org).
  */
 class AgentRouterProvider implements LLMProvider {

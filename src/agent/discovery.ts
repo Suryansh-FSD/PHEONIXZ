@@ -19,7 +19,7 @@ export const SOURCES = [
 async function fetchRSSFeed(source: { name: string; url: string }): Promise<RawItem[]> {
   const parser = new Parser({
     timeout: RSS_TIMEOUT_MS,
-    headers: { 'User-Agent': 'PheonixZ/1.0 (autonomous AI product analyst)' },
+    headers: { 'User-Agent': 'PhoenixZ/1.0 (autonomous AI product analyst)' },
   });
 
   const feed = await withTimeout(

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { DecisionLogItem, DecisionType } from "@/types/phoenixz";
 import { formatTimeOnly } from "@/lib/date";
-import { CheckCircle2, Clock, XCircle, Filter, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, SlidersHorizontal, Search, ChevronDown, ChevronUp, ShieldCheck, Target, Layers, Globe, ExternalLink } from "lucide-react";
 
 interface DecisionLogProps {
   items: DecisionLogItem[];
@@ -12,7 +12,7 @@ interface DecisionLogProps {
 export const DecisionLog: React.FC<DecisionLogProps> = ({ items }) => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id || null);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -31,23 +31,23 @@ export const DecisionLog: React.FC<DecisionLogProps> = ({ items }) => {
     switch (decision) {
       case "publish":
         return (
-          <span className="inline-flex items-center space-x-1 text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded-xs font-mono text-xs">
-            <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
-            <span>✓ Published</span>
+          <span className="bg-emerald-50 text-emerald-700 font-mono font-bold text-[10px] uppercase px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center space-x-1">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+            <span>PUBLISHED</span>
           </span>
         );
       case "watch":
         return (
-          <span className="inline-flex items-center space-x-1 text-amber-400 bg-amber-950/60 border border-amber-800/80 px-2 py-0.5 rounded-xs font-mono text-xs">
-            <Clock className="w-3 h-3" aria-hidden="true" />
-            <span>⊘ Watching</span>
+          <span className="bg-amber-50 text-amber-700 font-mono font-bold text-[10px] uppercase px-2 py-0.5 rounded border border-amber-200 inline-flex items-center space-x-1">
+            <Clock className="w-3 h-3 text-amber-600" />
+            <span>WATCHING</span>
           </span>
         );
       case "reject":
         return (
-          <span className="inline-flex items-center space-x-1 text-rose-400 bg-rose-950/60 border border-rose-800/80 px-2 py-0.5 rounded-xs font-mono text-xs">
-            <XCircle className="w-3 h-3" aria-hidden="true" />
-            <span>✕ Rejected</span>
+          <span className="bg-rose-50 text-rose-700 font-mono font-bold text-[10px] uppercase px-2 py-0.5 rounded border border-rose-200 inline-flex items-center space-x-1">
+            <XCircle className="w-3 h-3 text-rose-600" />
+            <span>REJECTED</span>
           </span>
         );
     }
@@ -58,176 +58,166 @@ export const DecisionLog: React.FC<DecisionLogProps> = ({ items }) => {
   };
 
   return (
-    <div className="w-full bg-phoenix-card border border-phoenix-border rounded-sm overflow-hidden font-mono text-xs shadow-sm">
-      {/* Controls & Filter Bar */}
-      <div className="bg-phoenix-bg/90 p-3 sm:p-4 border-b border-phoenix-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-phoenix-tertiary" aria-hidden="true" />
-          <h2 className="font-bold text-phoenix-text uppercase tracking-wide">
-            Autonomous Decision Ledger
-          </h2>
-          <span className="text-[10px] text-phoenix-tertiary bg-phoenix-elevated px-2 py-0.5 border border-phoenix-border rounded-xs tabular-nums">
-            {filteredItems.length} Records
-          </span>
-        </div>
+    <section className="w-full space-y-6">
+      {/* Page Header */}
+      <div>
+        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-orange-600 block mb-1">
+          02 // DECISION LEDGER
+        </span>
+        <h2 className="text-xl font-bold text-gray-900 tracking-tight font-sans">
+          Audit every intelligence decision made by PhoenixZ.
+        </h2>
+      </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          {/* Status Filters */}
-          <div className="flex items-center space-x-1 bg-phoenix-elevated border border-phoenix-border p-1 rounded-xs">
+      {/* Filter / Search Bar - Identical to Analysis Feed */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        {/* Left: Filter Icon & Category Pills */}
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
+          <div className="w-9 h-9 border border-gray-200 rounded-md bg-white text-gray-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
+            <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+          </div>
+
+          <div className="flex items-center space-x-2">
             {[
               { id: "all", label: "All" },
               { id: "publish", label: "Published" },
               { id: "watch", label: "Watching" },
               { id: "reject", label: "Rejected" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                aria-label={`Filter decisions by ${tab.label}`}
-                className={`text-xs px-2.5 py-1 rounded-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${
-                  statusFilter === tab.id
-                    ? "bg-phoenix-bg text-phoenix-text font-bold border border-phoenix-border"
-                    : "text-phoenix-tertiary hover:text-phoenix-text"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+            ].map((tab) => {
+              const isSelected = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`text-xs font-sans font-medium px-3.5 py-2 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+                    isSelected
+                      ? "bg-orange-50/60 border border-orange-500 text-orange-600 font-semibold shadow-2xs"
+                      : "bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-phoenix-tertiary" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Filter decisions…"
-              aria-label="Filter decision ledger"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-phoenix-elevated border border-phoenix-border text-phoenix-text text-xs pl-8 pr-3 py-1.5 rounded-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 focus:border-phoenix-border-strong w-full"
-            />
-          </div>
+        {/* Right: Search Box */}
+        <div className="relative min-w-[280px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search decisions or companies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 text-xs font-sans pl-9 pr-3 py-2 rounded-md focus:outline-none focus:border-gray-400 shadow-2xs"
+          />
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-phoenix-bg text-phoenix-tertiary uppercase text-[10px] tracking-wider border-b border-phoenix-border">
-            <tr>
-              <th className="px-4 py-3">Company</th>
-              <th className="px-4 py-3">Decision</th>
-              <th className="px-4 py-3">Score</th>
-              <th className="px-4 py-3">Reason</th>
-              <th className="px-4 py-3">Time</th>
-              <th className="px-4 py-3 text-right">Details</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-phoenix-border bg-phoenix-card text-phoenix-text">
-            {filteredItems.length > 0 ? (
-              filteredItems.map((item) => {
-                const isExpanded = expandedId === item.id;
-                return (
-                  <React.Fragment key={item.id}>
-                    <tr
-                      onClick={() => toggleExpand(item.id)}
-                      className="hover:bg-phoenix-elevated/60 transition-colors cursor-pointer"
-                    >
-                      <td className="px-4 py-3 font-bold text-phoenix-text uppercase">
-                        {item.company}
-                      </td>
-                      <td className="px-4 py-3">{getDecisionBadge(item.decision)}</td>
-                      <td className="px-4 py-3 font-bold text-emerald-400 tabular-nums">
-                        {item.score}/100
-                      </td>
-                      <td className="px-4 py-3 font-sans text-xs text-phoenix-muted max-w-md truncate">
-                        &ldquo;{item.reason}&rdquo;
-                      </td>
-                      <td className="px-4 py-3 text-phoenix-tertiary tabular-nums whitespace-nowrap text-[11px]">
-                        {formatTimeOnly(item.timestamp)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleExpand(item.id);
-                          }}
-                          aria-expanded={isExpanded}
-                          aria-label="Toggle details"
-                          className="p-1 text-phoenix-tertiary hover:text-phoenix-text rounded-xs"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" aria-hidden="true" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-                          )}
-                        </button>
-                      </td>
-                    </tr>
+      {/* Decision Entries Styled as Brief Cards */}
+      <div className="space-y-4">
+        {filteredItems.length > 0 ? (
+          filteredItems.map((item) => {
+            const isExpanded = expandedId === item.id;
+            return (
+              <article
+                key={item.id}
+                className="w-full bg-white border border-gray-200 rounded-xl p-5 shadow-2xs transition-all"
+              >
+                {/* Header Row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-full bg-black text-white font-bold text-xs font-sans flex items-center justify-center flex-shrink-0">
+                      {item.company.charAt(0)}
+                    </div>
+                    <span className="font-bold text-base text-gray-900 font-sans uppercase">
+                      {item.company}
+                    </span>
+                    {getDecisionBadge(item.decision)}
+                  </div>
 
-                    {/* Expandable Details Drawer Row */}
-                    {isExpanded && item.scoreBreakdown && (
-                      <tr className="bg-phoenix-bg/90">
-                        <td colSpan={6} className="px-4 py-3">
-                          <div className="space-y-2 animate-fadeIn">
-                            <div className="text-[10px] font-bold text-phoenix-tertiary uppercase">
-                              6-Dimension Rubric Sub-Scores
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-[11px]">
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Market Pressure</span>
-                                <span className="text-emerald-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.marketPressure}/25
-                                </span>
-                              </div>
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Strategic Signal</span>
-                                <span className="text-sky-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.strategicSignal}/20
-                                </span>
-                              </div>
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Evidence Quality</span>
-                                <span className="text-blue-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.evidenceQuality}/20
-                                </span>
-                              </div>
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Timeliness</span>
-                                <span className="text-purple-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.timeliness}/15
-                                </span>
-                              </div>
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Persona Fit</span>
-                                <span className="text-amber-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.personaFit}/10
-                                </span>
-                              </div>
-                              <div className="bg-phoenix-card border border-phoenix-border p-2 text-center rounded-xs">
-                                <span className="text-phoenix-tertiary block">Pattern Continuity</span>
-                                <span className="text-orange-400 font-bold tabular-nums">
-                                  {item.scoreBreakdown.patternContinuity}/10
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-phoenix-tertiary">
-                  No decision records found matching current filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  <div className="flex items-center space-x-3">
+                    <span className="font-mono text-xs text-gray-500">
+                      {formatTimeOnly(item.timestamp)}
+                    </span>
+
+                    <div className="border border-emerald-200 bg-emerald-50/50 text-emerald-700 font-bold text-xs px-3 py-1 rounded-md flex items-center space-x-1.5 font-mono">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Score:</span>
+                      <span className="text-emerald-700">{item.score}/100</span>
+                    </div>
+
+                    <button
+                      onClick={() => toggleExpand(item.id)}
+                      className="p-1 text-gray-500 hover:text-gray-900 rounded-md cursor-pointer"
+                    >
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Candidate Title */}
+                <h3 className="text-base font-bold text-gray-900 font-sans mb-3">
+                  {item.candidateTitle}
+                </h3>
+
+                {/* Main Rationale Preview */}
+                <div className="bg-[#F8F9FA] border border-gray-200/80 rounded-md p-3.5 mb-3">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
+                    DECISION RATIONALE
+                  </span>
+                  <p className="text-xs text-gray-700 font-sans leading-relaxed">
+                    &ldquo;{item.reason}&rdquo;
+                  </p>
+                </div>
+
+                {/* Expandable Details Drawer */}
+                {isExpanded && item.scoreBreakdown && (
+                  <div className="pt-3 border-t border-gray-200 space-y-4 animate-fadeIn">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-orange-600 block">
+                      SCORE BREAKDOWN & SUB-RUBRIC AUDIT
+                    </span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 font-mono text-xs">
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Market Impact</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.marketPressure}/25</span>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Strategic Signal</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.strategicSignal}/20</span>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Evidence Quality</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.evidenceQuality}/20</span>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Timeliness</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.timeliness}/15</span>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Persona Fit</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.personaFit}/10</span>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-2.5 rounded text-center">
+                        <span className="text-gray-500 text-[10px] block">Pattern Continuity</span>
+                        <span className="font-bold text-gray-900 text-xs">{item.scoreBreakdown.patternContinuity}/10</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })
+        ) : (
+          <div className="bg-white border border-gray-200 p-12 text-center rounded-lg space-y-2">
+            <p className="text-gray-400 font-mono text-xs uppercase tracking-wider">
+              No Decision Log Records Match Filter
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 };

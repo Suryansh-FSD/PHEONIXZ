@@ -6,7 +6,7 @@ export class AgentsRepository {
   async getOrCreateDefaultAgent() {
     return {
       id: "pz-agent-001",
-      name: "PheonixZ",
+      name: "PhoenixZ",
       domain: "AI Product Strategy",
       active: true,
       createdAt: new Date().toISOString(),

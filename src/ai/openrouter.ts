@@ -26,7 +26,7 @@ class OpenRouterProvider implements LLMProvider {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.apiKey}`,
         'HTTP-Referer': 'https://phoenixz.ai',
-        'X-Title': 'PheonixZ',
+        'X-Title': 'PhoenixZ',
       },
       body: JSON.stringify({
         model: this.model,

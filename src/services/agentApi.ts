@@ -20,8 +20,8 @@ export interface AgentInfo {
  * Calls POST /api/agent/init according to the evaluator contract.
  */
 export async function initAgent(
-  personaName = "Ada",
-  domain = "AI Security"
+  personaName = "PhoenixZ",
+  domain = "AI/Technology"
 ): Promise<InitResponse> {
   const res = await fetch("/api/agent/init", {
     method: "POST",

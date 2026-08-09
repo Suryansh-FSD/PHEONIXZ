@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { EditorialPost } from "@/types/phoenixz";
 import { FeedCard } from "@/components/ui/FeedCard";
-import { SearchInput } from "@/components/ui/SearchInput";
 import { SlidersHorizontal, Search } from "lucide-react";
 
 interface LiveFeedProps {
@@ -37,52 +36,61 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ posts }) => {
   }, [posts, selectedCategory, searchQuery]);
 
   return (
-    <section className="w-full space-y-4">
-      {/* Controls: Search and Filter Pills */}
-      <div className="bg-zinc-950 border border-zinc-800 p-3 sm:p-4 rounded-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Pills */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-500 mr-1 flex-shrink-0" aria-hidden="true" />
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              aria-label={`Filter feed by ${cat.label}`}
-              className={`text-xs font-mono px-2.5 py-1 rounded-xs transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${
-                selectedCategory === cat.id
-                  ? "bg-zinc-200 text-zinc-950 font-bold"
-                  : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+    <section className="w-full space-y-6">
+      {/* Controls Bar: Filter Icon + Pills + Search Box */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        {/* Left: Filter Icon & Category Pills */}
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
+          <div className="w-9 h-9 border border-gray-200 rounded-md bg-white text-gray-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
+            <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`text-xs font-sans font-medium px-3.5 py-2 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+                    isSelected
+                      ? "bg-orange-50/60 border border-orange-500 text-orange-600 font-semibold shadow-2xs"
+                      : "bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[200px]">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true" />
+        {/* Right: Search Box */}
+        <div className="relative min-w-[280px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search moves or companies…"
-            aria-label="Search moves or companies"
+            placeholder="Search moves or companies..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 placeholder-zinc-500 text-xs font-mono pl-8 pr-3 py-1.5 rounded-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 focus:border-zinc-600"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 text-xs font-sans pl-9 pr-3 py-2 rounded-md focus:outline-none focus:border-gray-400 shadow-2xs"
           />
         </div>
       </div>
 
-      {/* Feed List */}
-      <div className="space-y-4">
+      {/* Analysis Feed List */}
+      <div className="space-y-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post, idx) => (
             <FeedCard key={post.id} post={post} initiallyExpanded={idx === 0} />
           ))
         ) : (
-          <div className="bg-zinc-950 border border-zinc-800 p-12 text-center rounded-sm">
-            <p className="text-zinc-400 font-mono text-sm">
-              No analysis posts match your current filter.
+          <div className="bg-white border border-gray-200 p-12 text-center rounded-lg space-y-2">
+            <p className="text-gray-400 font-mono text-xs uppercase tracking-wider">
+              No Analysis Briefs Match Current Filter
+            </p>
+            <p className="text-gray-500 text-xs font-sans">
+              Try selecting a different category pill or clearing your search input.
             </p>
           </div>
         )}

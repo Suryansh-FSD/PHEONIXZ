@@ -1,93 +1,43 @@
 @import "tailwindcss";
 
 @layer base {
-  :root,
-  .dark {
-    --color-bg-base: #08080a;
-    --color-bg-surface: #121215;
-    --color-bg-elevated: #1a1a1e;
-    --color-bg-subtle: #24242a;
-
-    --color-border-subtle: #1c1c20;
-    --color-border-default: #27272a;
-    --color-border-strong: #3f3f46;
-
-    --color-text-primary: #f4f4f5;
-    --color-text-secondary: #a1a1aa;
-    --color-text-tertiary: #71717a;
-    --color-text-inverse: #08080a;
-
-    --color-accent-primary: #f97316;
-    --color-accent-hover: #ea580c;
-    --color-accent-subtle: rgba(249, 115, 22, 0.12);
-
-    --color-status-live: #10b981;
-    --color-status-live-bg: rgba(16, 185, 129, 0.1);
-    --color-status-live-border: rgba(16, 185, 129, 0.3);
-
-    --color-status-watch: #f59e0b;
-    --color-status-watch-bg: rgba(245, 158, 11, 0.1);
-    --color-status-watch-border: rgba(245, 158, 11, 0.3);
-
-    --color-status-reject: #ef4444;
-    --color-status-reject-bg: rgba(239, 68, 68, 0.1);
-    --color-status-reject-border: rgba(239, 68, 68, 0.3);
-
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
-    --shadow-glow: 0 0 20px -5px rgba(249, 115, 22, 0.15);
-  }
-
-  .light {
-    --color-bg-base: #fcfcfd;
+  :root {
+    --color-bg-base: #fafbfc;
     --color-bg-surface: #ffffff;
-    --color-bg-elevated: #f4f4f5;
-    --color-bg-subtle: #e4e4e7;
+    --color-bg-elevated: #f4f5f7;
+    --color-bg-subtle: #ebedf0;
 
-    --color-border-subtle: #f4f4f5;
-    --color-border-default: #e4e4e7;
-    --color-border-strong: #d4d4d8;
+    --color-border-subtle: #f0f1f4;
+    --color-border-default: #e4e7eb;
+    --color-border-strong: #d0d5dd;
 
-    --color-text-primary: #09090b;
-    --color-text-secondary: #52525b;
-    --color-text-tertiary: #71717a;
+    --color-text-primary: #101828;
+    --color-text-secondary: #475467;
+    --color-text-tertiary: #667085;
     --color-text-inverse: #ffffff;
 
-    --color-accent-primary: #ea580c;
-    --color-accent-hover: #c2410c;
-    --color-accent-subtle: rgba(234, 88, 12, 0.08);
+    --color-accent-primary: #f95700;
+    --color-accent-hover: #ea580c;
+    --color-accent-subtle: rgba(249, 87, 0, 0.08);
 
-    --color-status-live: #059669;
-    --color-status-live-bg: rgba(5, 150, 105, 0.08);
-    --color-status-live-border: rgba(5, 150, 105, 0.25);
+    --color-status-live: #12b76a;
+    --color-status-live-bg: #ecfdf3;
+    --color-status-live-border: #abefc6;
 
-    --color-status-watch: #d97706;
-    --color-status-watch-bg: rgba(217, 119, 6, 0.08);
-    --color-status-watch-border: rgba(217, 119, 6, 0.25);
+    --color-status-watch: #f79009;
+    --color-status-watch-bg: #fffaeb;
+    --color-status-watch-border: #fedf89;
 
-    --color-status-reject: #dc2626;
-    --color-status-reject-bg: rgba(220, 38, 38, 0.08);
-    --color-status-reject-border: rgba(220, 38, 38, 0.25);
+    --color-status-reject: #f04438;
+    --color-status-reject-bg: #fef3f2;
+    --color-status-reject-border: #fecdca;
 
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    --shadow-glow: 0 0 20px -5px rgba(234, 88, 12, 0.1);
-  }
+    --shadow-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.06), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
 
-  :root {
-    --radius-none: 0px;
-    --radius-xs: 2px;
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
-    --radius-full: 9999px;
-
-    --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
-    --duration-fast: 150ms;
-    --duration-medium: 250ms;
-    --duration-slow: 400ms;
   }
 }
 
@@ -96,6 +46,115 @@ body {
   background-color: var(--color-bg-base);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Comprehensive Dark Mode Theme Overrides */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body,
+html.dark [class*="bg-[#FAFBFC]"] {
+  background-color: #090a0f !important;
+  color: #f3f4f6 !important;
+}
+
+html.dark .bg-white {
+  background-color: #12141c !important;
+  color: #f3f4f6 !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-gray-50\/80,
+html.dark .bg-gray-50\/50,
+html.dark .bg-gray-50\/70,
+html.dark .bg-gray-50\/40,
+html.dark [class*="bg-[#F8F9FA]"] {
+  background-color: #181b26 !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .border-gray-200,
+html.dark .border-gray-200\/80,
+html.dark .border-gray-200\/60,
+html.dark .border-gray-300 {
+  border-color: #242838 !important;
+}
+
+html.dark .text-gray-900 {
+  color: #f3f4f6 !important;
+}
+
+html.dark .text-gray-800,
+html.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #181b26 !important;
+  border-color: #242838 !important;
+  color: #f3f4f6 !important;
+}
+
+html.dark input::placeholder {
+  color: #6b7280 !important;
+}
+
+html.dark .bg-orange-50\/60,
+html.dark .bg-orange-50\/80,
+html.dark .bg-orange-50\/40 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  border-color: rgba(249, 115, 22, 0.3) !important;
+  color: #fb923c !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/50,
+html.dark .bg-emerald-50\/40 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/60,
+html.dark .bg-amber-50\/50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-50\/60,
+html.dark .bg-rose-50\/50 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
+
+html.dark .bg-sky-50,
+html.dark .bg-sky-50\/50 {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+  color: #38bdf8 !important;
+}
+
+html.dark .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+  color: #c084fc !important;
 }
 
 @keyframes fadeIn {
@@ -109,21 +168,6 @@ body {
   }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 .animate-fadeIn {
-  animation: fadeIn var(--duration-fast) var(--ease-editorial) forwards;
-}
-
-.animate-slideInRight {
-  animation: slideInRight var(--duration-medium) var(--ease-editorial) forwards;
+  animation: fadeIn 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

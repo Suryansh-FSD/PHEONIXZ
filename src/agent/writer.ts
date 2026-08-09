@@ -14,8 +14,8 @@ export async function generatePost(
   memoryContext: MemoryContext,
   agent?: { name: string; domain: string }
 ): Promise<WriterOutput> {
-  const agentName = agent?.name ?? 'PheonixZ';
-  const agentDomain = agent?.domain ?? 'AI Security';
+  const agentName = agent?.name ?? 'PhoenixZ';
+  const agentDomain = agent?.domain ?? 'AI/Technology';
 
   const userPrompt = `
 AGENT NAME: ${agentName}
