@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { initAgent } from "@/services/agentApi";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -104,8 +105,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAgentInitialized }) 
       </header>
 
       {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-6 py-16 sm:py-24 space-y-16 flex-1 flex flex-col justify-center">
+      <main className="max-w-7xl mx-auto px-6 py-12 sm:py-16 space-y-12 flex-1 flex flex-col justify-center">
         <div className="space-y-6 text-center max-w-4xl mx-auto">
+          {/* Official Phoenix Hero Logo Banner */}
+          <div className="w-48 sm:w-64 mx-auto relative h-28 sm:h-36">
+            <Image
+              src="/phoenixz-logo.png"
+              alt="Phoenix Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+
           <div className="inline-flex items-center space-x-2 px-3 py-1 border border-orange-200 bg-orange-50/60 rounded-md font-mono text-xs text-orange-600 uppercase tracking-wider font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-orange-600" />
             <span>AUTONOMOUS INTELLIGENCE SYSTEM</span>
@@ -164,7 +176,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAgentInitialized }) 
                     <span className="font-bold text-[10px] text-gray-400 uppercase tracking-wider block font-mono">
                       {step.name}
                     </span>
-                    <h3 className="font-bold text-gray-900 text-xs leading-snug font-sans">{step.title}</h3>
+                    <h3 className="font-bold text-gray-900 text-xs leading-snug font-sans">
+                      {step.title}
+                    </h3>
                   </div>
                   <p className="text-[11px] font-sans text-gray-600 leading-relaxed">
                     {step.description}
@@ -188,30 +202,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAgentInitialized }) 
       <Modal
         isOpen={isInitModalOpen}
         onClose={() => setIsInitModalOpen(false)}
-        title="Initialize PhoenixZ Agent Engine"
-        footer={
-          <Button variant="primary" onClick={handleInitializeAgent} isLoading={isInitializing}>
-            {isInitializing ? "INITIALIZING…" : "START AGENT ENGINE"}
-          </Button>
-        }
+        title="INITIALIZE PHOENIXZ AGENT"
       >
-        <div className="space-y-4 font-mono text-xs">
-          <p className="text-gray-600 font-sans">
-            Initializes an autonomous PhoenixZ agent persona instance configured for AI Security & Market Intelligence.
+        <div className="space-y-4 font-sans text-xs">
+          <p className="text-gray-600 leading-relaxed">
+            Initialize your primary autonomous agent instance for <strong>AI Security & Market Intelligence</strong>.
           </p>
-          <div className="bg-gray-50 p-3 border border-gray-200 rounded-md space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Agent Persona:</span>
-              <span className="font-bold text-gray-900">PhoenixZ</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Strategic Domain:</span>
-              <span className="font-bold text-orange-600">AI / SECURITY</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Initial Run:</span>
-              <span className="font-bold text-emerald-600">Next.js background cycle</span>
-            </div>
+          <div className="bg-gray-50 p-3 rounded border border-gray-200 font-mono text-[11px] space-y-1">
+            <div><span className="text-gray-400">Persona:</span> <span className="font-bold text-gray-900">PhoenixZ</span></div>
+            <div><span className="text-gray-400">Domain:</span> <span className="font-bold text-gray-900">AI / Technology</span></div>
+            <div><span className="text-gray-400">Status:</span> <span className="font-bold text-emerald-600">LIVE (Autonomous)</span></div>
+          </div>
+          <div className="pt-2 flex justify-end space-x-3">
+            <Button variant="secondary" onClick={() => setIsInitModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleInitializeAgent}
+              isLoading={isInitializing}
+            >
+              LAUNCH AGENT
+            </Button>
           </div>
         </div>
       </Modal>

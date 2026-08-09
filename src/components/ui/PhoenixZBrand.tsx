@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface PhoenixZBrandProps {
   compact?: boolean;
@@ -15,12 +16,17 @@ export const PhoenixZBrand: React.FC<PhoenixZBrandProps> = ({
 }) => {
   return (
     <div className={`flex flex-col select-none ${className}`}>
-      <div className="flex items-center space-x-2.5">
-        {/* PhoenixZ Orange Flame Mark */}
-        <div className={`${compact ? "w-6 h-6" : "w-7 h-7"} flex items-center justify-center text-orange-600 flex-shrink-0`}>
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-            <path d="M12 2C10.5 4.5 9 6.5 9 9c0 2.2 1.8 4 4 4s4-1.8 4-4c0-2.5-1.5-4.5-3-7zm-4.5 6C6.5 10 5 12 5 14.5c0 3.6 2.9 6.5 6.5 6.5s6.5-2.9 6.5-6.5C18 12 16.5 10 15 8c-.5.8-1.2 1.5-2 2-1.5-2-1.5-4.5-1.5-4.5S10 7 8.5 8z" />
-          </svg>
+      <div className="flex items-center space-x-3">
+        {/* Official PhoenixZ Logo Image */}
+        <div className={`${compact ? "w-8 h-8" : "w-10 h-10"} relative flex-shrink-0 flex items-center justify-center`}>
+          <Image
+            src="/phoenixz-logo.png"
+            alt="PhoenixZ Logo"
+            width={40}
+            height={40}
+            className="w-full h-full object-contain"
+            priority
+          />
         </div>
 
         {/* PHOENIXZ Wordmark & Version Badge */}
