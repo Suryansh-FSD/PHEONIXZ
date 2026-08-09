@@ -5,10 +5,31 @@ import { executeSchedulerTick } from '@/agent/scheduler';
 export const maxDuration = 60;
 
 function verifyAuth(req: NextRequest): boolean {
-  const incomingSecret = req.headers.get('x-cron-secret') || req.headers.get('authorization')?.replace('Bearer ', '');
   const expectedSecret = process.env.CRON_SECRET;
-  if (!expectedSecret) return true; // If no CRON_SECRET set, allow internal calls
-  return incomingSecret === expectedSecret;
+  if (!expectedSecret) return true; // If no CRON_SECRET set, allow calls
+
+  // 1. Check for valid CRON_SECRET header (for external cron / scheduler calls)
+  const incomingSecret =
+    req.headers.get('x-cron-secret') ||
+    req.headers.get('authorization')?.replace('Bearer ', '');
+
+  if (incomingSecret === expectedSecret) {
+    return true;
+  }
+
+  // 2. Allow same-origin dashboard UI requests
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  if (secFetchSite === 'same-origin' || secFetchSite === 'same-site') {
+    return true;
+  }
+
+  const origin = req.headers.get('origin') || req.headers.get('referer');
+  const host = req.headers.get('host');
+  if (origin && host && origin.includes(host)) {
+    return true;
+  }
+
+  return false;
 }
 
 export async function POST(req: NextRequest) {

@@ -1,4 +1,4 @@
-<!-- AICB:BEGIN {"version":1,"target":"GEMINI.md","generatedAt":"2026-08-09T11:11:40.923Z","hash":"sha256:bc147bc36ef25d1e6f97a88a5f4aa9242e4c5775a4994af3e612878e43e906e3"} -->
+<!-- AICB:BEGIN {"version":1,"target":"GEMINI.md","generatedAt":"2026-08-09T11:24:09.601Z","hash":"sha256:7566d1847ed022b5298bbadff3b1c79bb70e9c4f03d62b6e456a9d03199d220e"} -->
 # AI Context Bridge — Handoff
 
 Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
@@ -18,6 +18,7 @@ Workspace: `/Users/suryanshdixit/Desktop/PhoenixZ`
 - `.github/workflows/autonomous-worker.yml` _(auto:dwell)_
 - `.env.example` _(auto:dwell)_
 - `src/memory/breeth.ts` _(auto:dwell)_
+- `.env.local` _(auto:dwell)_
 
 ## Skills
 - **ENABLED** — Dataproc and Spark Integration, ML on Dataproc, Spark Optimizations, gcp_pipeline_resource_provisioning_spec, Pipeline YAML Schema, Bottlenecks and Parallelism Context, Dataflow Diagnostics Reference, dataflow_metrics_bigquery, Core Job Metrics, dataflow_metrics_pubsub, dataflow_metrics_streaming_engine, Dataflow Flex Template - Single Docker Image Configuration, Dataflow Streaming Horizontal Autoscaling Analysis, Streaming Job Health Analysis, BigFrames Code Generation, BigQuery ML (BQML) & AI Functions, BigQuery Optimization, AI.EVALUATE, AI.FORECAST, AI.GENERATE_EMBEDDING, Contribution Analysis, Creating Remote Models, VECTOR_SEARCH, Gemini Data Analytics Chat Integration, Building with React + Vite, Building with Streamlit

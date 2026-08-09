@@ -16,9 +16,9 @@ User / Evaluator
        └──────► GET /api/agent/feed ───────► Supabase (posts table) [100% Read-Only]
                                                   ▲
                                                   │
-Durable Autonomous Scheduler Engine ──────────────┤
- (instrumentation.ts Node background worker       │
-  + vercel.json cron /api/internal/cycle)        │
+External Autonomous Scheduler / Trigger ──────────┤
+  (Free cron-job.org / GitHub Actions /           │
+   Dashboard UI / api/internal/cycle)            │
                                                   │
                                          16-Step Autonomous Cycle
                                          (Discover ──► Cluster ──► Score ──► Write ──► QC ──► Persist)
@@ -41,8 +41,8 @@ Durable Autonomous Scheduler Engine ──────────────�
 ### Installation
 
 ```bash
-git clone https://github.com/Suryansh-FSD/PhoenixZ.git
-cd PhoenixZ
+git clone https://github.com/Suryansh-FSD/PHEONIXZ.git
+cd PHEONIXZ
 npm install
 ```
 
@@ -52,7 +52,8 @@ Create a `.env.local` file in the project root:
 
 ```env
 # Supabase Configuration
-SUPABASE_URL=https://your-supabase-project.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 # Primary LLM Provider (Groq)
@@ -65,7 +66,7 @@ GEMINI_API_KEY=your-gemini-api-key
 OPENROUTER_API_KEY=your-openrouter-api-key
 AGENT_ROUTER_API_KEY=your-agentrouter-api-key
 
-# Vercel Cron Authentication
+# Internal Authorization Secret
 CRON_SECRET=your-cron-secret-token
 ```
 
@@ -84,7 +85,7 @@ The application will start on `http://localhost:3000`. The autonomous background
 Run the full automated test suite, typecheck, linter, and production build:
 
 ```bash
-# Run unit & integration tests (44/44 passing)
+# Run unit & integration tests (58/58 passing)
 npm test
 
 # Run TypeScript type check
@@ -120,37 +121,40 @@ Configure these environment variables in your Vercel project settings:
 
 | Variable Name | Required | Description | Scope |
 |---|---|---|---|
-| `SUPABASE_URL` | **Yes** | HTTPS URL of your Supabase database instance | Server-side |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | HTTPS URL of your Supabase database instance | Client & Server |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Public anon key of your Supabase instance | Client-side |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Yes** | Server-side Supabase service-role secret key | Server-side Secret |
 | `GROQ_API_KEY` | **Yes** | API Key for primary LLM provider (Groq `llama-3.3-70b-versatile`) | Server-side Secret |
 | `GEMINI_API_KEY` | **Yes** | API Key for fallback LLM provider (Google Gemini `gemini-flash-latest`) | Server-side Secret |
 | `OPENROUTER_API_KEY` | Optional | API Key for optional OpenRouter fallback gateway | Server-side Secret |
 | `AGENT_ROUTER_API_KEY` | Optional | API Key for optional AgentRouter / Claude fallback gateway | Server-side Secret |
-| `CRON_SECRET` | **Yes** | Shared authorization token for Vercel Cron on `/api/internal/cycle` | Server-side Secret |
+| `CRON_SECRET` | **Yes** | Shared authorization token for external scheduler calls on `/api/internal/cycle` | Server-side Secret |
 | `PUBLISH_COOLDOWN_HOURS` | Optional | Hours between published posts per agent (default: `2`) | Server-side |
 
 ---
 
-## Vercel Deployment Instructions
+## Vercel Hobby (Free Tier) Deployment Instructions
 
 1. **Push Code to GitHub**:
    Ensure your code is pushed to your GitHub repository.
 
 2. **Import into Vercel**:
    - Go to [Vercel Dashboard](https://vercel.com/new).
-   - Select your `PhoenixZ` repository.
+   - Select your `PHEONIXZ` repository.
    - Choose Framework Preset: **Next.js**.
 
 3. **Configure Environment Variables**:
    Add all required environment variables listed in the section above.
 
 4. **Deploy**:
-   Click **Deploy**. Vercel will build the Next.js application.
+   Click **Deploy**. Vercel will build the Next.js application cleanly with zero Vercel Cron restriction errors.
 
-5. **Verify Deployment**:
-   - Initialize an agent: `POST /api/agent/init` with `{"persona":{"name":"Ada","domain":"AI Security"}}`.
-   - Vercel Crons automatically trigger `/api/internal/cycle` every minute using `vercel.json`.
-   - Retrieve published posts: `GET /api/agent/feed?agentId=<agentId>`.
+5. **Configure Free External Autonomous Scheduler**:
+   To run recurring autonomous intelligence cycles on Vercel Hobby without paid plan upgrades:
+   - Use a free scheduling service such as [cron-job.org](https://cron-job.org) or Upstash QStash.
+   - Set up an HTTP `POST` trigger to `https://your-vercel-app.vercel.app/api/internal/cycle` every 10 or 15 minutes.
+   - Add the HTTP Header: `x-cron-secret: <CRON_SECRET>` (matching your `CRON_SECRET` Vercel environment variable).
+   - Alternatively, dashboard users can click **RUN CYCLE** at any time from the live UI.
 
 ---
 
@@ -162,8 +166,8 @@ Configure these environment variables in your Vercel project settings:
   ```json
   {
     "persona": {
-      "name": "Ada",
-      "domain": "AI Security"
+      "name": "PhoenixZ",
+      "domain": "AI/Technology"
     }
   }
   ```
