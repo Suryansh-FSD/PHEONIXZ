@@ -1,42 +1,42 @@
-# PhoenixZ — Autonomous Intelligence & Editorial Agent Platform
+# PhoenixZ — Autonomous AI Security & Market Intelligence Platform
 
-PhoenixZ is a provider-agnostic autonomous agent platform built with Next.js 16, Supabase PostgreSQL, and a multi-provider LLM gateway (Groq, Gemini, OpenRouter, AgentRouter).
+PhoenixZ is an autonomous AI technology & market intelligence platform that scans tech news, clusters developments, evaluates market impact, synthesizes strategic insights, and persists published analysis without requiring human manual operation.
 
-The platform autonomously ingests tech/AI news, clusters items into strategic product moves, scores items against a dynamic editorial rubric, generates multi-section analysis posts, and persists structured intelligence to a real-time feed.
+```text
+ ┌─────────────────────────────────────────────────────────────────────────────────┐
+ │                                 PHOENIXZ SYSTEM                                 │
+ └─────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+ User / Evaluator                        │
+       │                                 ▼
+       ├───► POST /api/agent/init ───► Supabase (agents table) [Write-Once / Idempotent]
+       │                                 ▲
+       │                                 │
+       └──────► GET /api/agent/feed ───────► Supabase (posts table) [100% Read-Only]
+                                                   ▲
+                                                   │
+GitHub Actions Autonomous Scheduler ──────────────┤
+ (Runs every 10 mins via .github/workflows/       │
+  autonomous-cycle.yml -> /api/internal/cycle)     │
+                                                   │
+                                          16-Step Autonomous Cycle
+                                          (Discover ──► Cluster ──► Score ──► Write ──► QC ──► Persist)
+```
 
 ---
 
-## Architecture Overview
+## Technical Stack & Architecture
 
-```
-User / Evaluator
-       │
-       ├──────► POST /api/agent/init ──────► Supabase (agents table) ──► First Background Cycle
-       │
-       └──────► GET /api/agent/feed ───────► Supabase (posts table) [100% Read-Only]
-                                                  ▲
-                                                  │
-External Autonomous Scheduler / Trigger ──────────┤
-  (Free cron-job.org / GitHub Actions /           │
-   Dashboard UI / api/internal/cycle)            │
-                                                  │
-                                         16-Step Autonomous Cycle
-                                         (Discover ──► Cluster ──► Score ──► Write ──► QC ──► Persist)
-                                                  │
-                                                  ▼
-                                         Multi-Provider LLM Gateway
-                                         (Groq ──► Gemini ──► OpenRouter ──► AgentRouter)
-```
+- **Framework**: Next.js 16 (App Router, Turbopack, React 19)
+- **Language**: TypeScript 5
+- **Database**: Supabase PostgreSQL (Row Level Security, RPC functions)
+- **AI Gateway**: Provider-agnostic multi-provider architecture with automatic fallback (Groq `llama-3.3-70b-versatile` → Google Gemini `gemini-flash-latest` → OpenRouter → Claude AgentRouter)
+- **Scheduler**: GitHub Actions Workflow (`.github/workflows/autonomous-cycle.yml`)
+- **Testing**: Vitest with unit, integration, and API test coverage
 
 ---
 
 ## Local Development Setup
-
-### Prerequisites
-
-- Node.js 18+
-- npm 9+
-- Supabase project (with PostgreSQL migrations applied)
 
 ### Installation
 
@@ -46,7 +46,7 @@ cd PHEONIXZ
 npm install
 ```
 
-### Environment Setup
+### Environment Configuration
 
 Create a `.env.local` file in the project root:
 
@@ -59,10 +59,8 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 # Primary LLM Provider (Groq)
 GROQ_API_KEY=your-groq-api-key
 
-# Fallback LLM Provider (Gemini)
+# Fallback LLM Providers
 GEMINI_API_KEY=your-gemini-api-key
-
-# Optional Fallback LLM Providers
 OPENROUTER_API_KEY=your-openrouter-api-key
 AGENT_ROUTER_API_KEY=your-agentrouter-api-key
 
@@ -70,22 +68,20 @@ AGENT_ROUTER_API_KEY=your-agentrouter-api-key
 CRON_SECRET=your-cron-secret-token
 ```
 
-### Running Locally
+### Development Server
 
 ```bash
 npm run dev
 ```
 
-The application will start on `http://localhost:3000`. The autonomous background scheduler automatically launches upon Node.js server startup via `instrumentation.ts`.
+The application will start on `http://localhost:3000`.
 
----
-
-## Verification & Test Suite
+### Verification Suite
 
 Run the full automated test suite, typecheck, linter, and production build:
 
 ```bash
-# Run unit & integration tests (58/58 passing)
+# Run unit & integration tests
 npm test
 
 # Run TypeScript type check
@@ -100,22 +96,7 @@ npm run build
 
 ---
 
-## Supabase Database Setup
-
-The database schema and policies are stored under `supabase/migrations/`:
-
-- `001_initial_schema.sql`: Core tables (`agents`, `candidates`, `decisions`, `posts`, `runs`, `source_status`) with RLS policies, indexes, and unique constraints.
-- `002_fix_rls_service_role.sql`: Service-role bypass policies for automated server-side cycles.
-
-To apply migrations using the Supabase CLI:
-
-```bash
-npx supabase db push
-```
-
----
-
-## Deployment Environment Variables
+## Production Environment Variables
 
 Configure these environment variables in your Vercel project settings:
 
@@ -133,69 +114,55 @@ Configure these environment variables in your Vercel project settings:
 
 ---
 
-## Vercel Hobby (Free Tier) Deployment Instructions
+## Autonomous Scheduling with GitHub Actions
 
-1. **Push Code to GitHub**:
-   Ensure your code is pushed to your GitHub repository.
+PhoenixZ uses **GitHub Actions** as its production autonomous scheduler, eliminating Vercel Cron tier restrictions and keeping deployments 100% compatible with the Vercel Hobby free tier.
 
-2. **Import into Vercel**:
-   - Go to [Vercel Dashboard](https://vercel.com/new).
-   - Select your `PHEONIXZ` repository.
-   - Choose Framework Preset: **Next.js**.
+### Role Breakdown
 
-3. **Configure Environment Variables**:
-   Add all required environment variables listed in the section above.
+- **GitHub Actions**: Production autonomous scheduler (triggers cycle every 10 minutes).
+- **Vercel**: Application hosting & API endpoint provider.
+- **Supabase**: PostgreSQL database & distributed locking registry.
+- **PhoenixZ**: Autonomous intelligence cycle execution engine.
 
-4. **Deploy**:
-   Click **Deploy**. Vercel will build the Next.js application cleanly with zero Vercel Cron restriction errors.
+### Setup Instructions
 
-5. **Configure Free External Autonomous Scheduler**:
-   To run recurring autonomous intelligence cycles on Vercel Hobby without paid plan upgrades:
-   - Use a free scheduling service such as [cron-job.org](https://cron-job.org) or Upstash QStash.
-   - Set up an HTTP `POST` trigger to `https://your-vercel-app.vercel.app/api/internal/cycle` every 10 or 15 minutes.
-   - Add the HTTP Header: `x-cron-secret: <CRON_SECRET>` (matching your `CRON_SECRET` Vercel environment variable).
-   - Alternatively, dashboard users can click **RUN CYCLE** at any time from the live UI.
+1. **Deploy PhoenixZ to Vercel**:
+   Import your repository into Vercel and deploy the Next.js application.
+
+2. **Add CRON_SECRET to Vercel**:
+   In Vercel Project Settings → Environment Variables, add `CRON_SECRET` with a secure random token.
+
+3. **Configure GitHub Repository Secret**:
+   - Go to your GitHub repository: **Settings** → **Secrets and variables** → **Actions**.
+   - Create a **New repository secret**:
+     - Name: `CRON_SECRET`
+     - Value: `<same secret token used in Vercel>`
+
+4. **Configure GitHub Repository Variable**:
+   - In the same Actions settings page, click the **Variables** tab.
+   - Create a **New repository variable**:
+     - Name: `PHOENIXZ_APP_URL`
+     - Value: `https://your-production-app.vercel.app`
+
+5. **Test Manual Trigger**:
+   - Navigate to GitHub **Actions** tab → **Autonomous PhoenixZ Cycle**.
+   - Click **Run workflow** → Select `main` branch → **Run workflow**.
+
+6. **Automatic Execution**:
+   Once configured, GitHub Actions will trigger `POST /api/internal/cycle` automatically every 10 minutes (`*/10 * * * *`).
 
 ---
 
-## Evaluator Contract API Reference
+## Evaluator Contract Compliance
 
-### 1. Initialize Agent
-- **Endpoint**: `POST /api/agent/init`
-- **Request Body**:
-  ```json
-  {
-    "persona": {
-      "name": "PhoenixZ",
-      "domain": "AI/Technology"
-    }
-  }
-  ```
-- **Response** (HTTP 200/201):
-  ```json
-  {
-    "agentId": "uuid-v4-string"
-  }
-  ```
+- `POST /api/agent/init`: Initializes agent instance (`{"persona":{"name":"PhoenixZ","domain":"AI/Technology"}}`).
+- `GET /api/agent/feed?agentId=<id>`: Returns 100% read-only list of published intelligence posts.
+- `POST /api/agent/search`: User-facing competitive intelligence search query endpoint.
+- `POST /api/internal/cycle`: Internal route triggered by GitHub Actions or dashboard UI to execute autonomous cycles.
 
-### 2. Get Public Feed
-- **Endpoint**: `GET /api/agent/feed?agentId=<agentId>`
-- **Behavior**: 100% Read-Only. Returns persisted posts from Supabase ordered newest-first.
-- **Response** (HTTP 200):
-  ```json
-  {
-    "posts": [
-      {
-        "id": "uuid-v4",
-        "createdAt": "ISO-8601-UTC-timestamp",
-        "move": "...",
-        "angle": "...",
-        "pressure": "...",
-        "take": "...",
-        "text": "...",
-        "rationale": "...",
-        "sources": ["https://..."]
-      }
-    ]
-  }
-  ```
+---
+
+## License
+
+MIT

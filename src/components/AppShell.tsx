@@ -10,6 +10,7 @@ import { ActivityPanel } from "./ActivityPanel";
 import { CompetitiveThreadView } from "./CompetitiveThreadView";
 import { RunHistory } from "./RunHistory";
 import { SourceHealthPanel } from "./SourceHealthPanel";
+import { SearchIntelligenceView } from "./SearchIntelligenceView";
 import { LandingPage } from "./LandingPage";
 import { PhoenixZBrand } from "@/components/ui/PhoenixZBrand";
 import {
@@ -39,6 +40,7 @@ import {
   Activity,
   Flame,
   Home,
+  Search,
 } from "lucide-react";
 
 export const AppShell: React.FC = () => {
@@ -50,7 +52,7 @@ export const AppShell: React.FC = () => {
   const [threads] = useState<CompetitiveThread[]>([]);
 
   const [activeTab, setActiveTab] = useState<
-    "feed" | "decisions" | "threads" | "runHistory" | "sourceHealth" | "activity"
+    "feed" | "search" | "decisions" | "threads" | "runHistory" | "sourceHealth" | "activity"
   >("feed");
   const [isScanning, setIsScanning] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -153,6 +155,7 @@ export const AppShell: React.FC = () => {
 
   const sidebarNavItems = [
     { id: "feed", label: "Analysis Feed", icon: Rss },
+    { id: "search", label: "Search Intelligence", icon: Search },
     { id: "decisions", label: "Decision Ledger", icon: GitCommit },
     { id: "threads", label: "Competitive Threads", icon: Flame },
     { id: "runHistory", label: "Run History", icon: Clock },
@@ -180,7 +183,7 @@ export const AppShell: React.FC = () => {
       {/* Fixed Left Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-5 sticky top-0 h-screen z-30 flex-shrink-0">
         <div className="space-y-6">
-          {/* Top Brand Header using PhoenixZBrand (Clickable to navigate to Landing Page) */}
+          {/* Top Brand Header using PhoenixZBrand */}
           <button
             onClick={() => setIsViewingLanding(true)}
             className="text-left focus:outline-none cursor-pointer group"
@@ -285,7 +288,7 @@ export const AppShell: React.FC = () => {
               className="w-9 h-9 border border-gray-200 rounded-md bg-white text-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
             >
               {theme === "dark" ? (
-                <Moon className="w-4 h-4 text-orange-400" />
+                <Sun className="w-4 h-4 text-orange-400" />
               ) : (
                 <Sun className="w-4 h-4 text-gray-500" />
               )}
@@ -318,6 +321,7 @@ export const AppShell: React.FC = () => {
         {/* Main Content Workspace */}
         <main className="px-8 py-6 flex-1">
           {activeTab === "feed" && <LiveFeed posts={posts} />}
+          {activeTab === "search" && <SearchIntelligenceView />}
           {activeTab === "decisions" && <DecisionLog items={decisions} />}
           {activeTab === "threads" && <CompetitiveThreadView threads={threads} />}
           {activeTab === "runHistory" && <RunHistory />}

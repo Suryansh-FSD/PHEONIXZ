@@ -164,6 +164,43 @@ export interface SourceHealth {
   updatedAt: string;
 }
 
+// Search Intelligence Contracts
+export type SearchIntentType = "company" | "product" | "pricing" | "launch" | "comparison" | "general";
+
+export interface SearchEntityInfo {
+  name: string;
+  parentCompany?: string;
+  type: string;
+}
+
+export interface SearchRecentMove {
+  title: string;
+  company: string;
+  category: string;
+  timestamp: string;
+  score?: number;
+}
+
+export interface SearchIntelligenceResult {
+  query: string;
+  found: boolean;
+  intent: SearchIntentType;
+  entity: SearchEntityInfo;
+  overview: string;
+  currentSignal: string;
+  recentMoves: SearchRecentMove[];
+  competitiveImpact: string;
+  sources: SourceObject[];
+  relatedEntities: {
+    companies: string[];
+    products: string[];
+  };
+}
+
+export interface SearchIntelligenceRequest {
+  query: string;
+}
+
 // Evaluator API Endpoints Data Payloads
 export interface InitResponse {
   agentId: string;

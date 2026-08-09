@@ -5,6 +5,7 @@ import {
   InitResponse,
   FeedResponse,
   SourceHealth,
+  SearchIntelligenceResult,
 } from "@/types/phoenixz";
 
 export interface AgentInfo {
@@ -205,4 +206,23 @@ export async function fetchSourceStatuses(): Promise<SourceHealth[]> {
   } catch {
     return [];
   }
+}
+
+/**
+ * Search PhoenixZ Competitive Intelligence
+ * Calls POST /api/agent/search
+ */
+export async function searchIntelligence(query: string): Promise<SearchIntelligenceResult> {
+  const res = await fetch("/api/agent/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Search Failed: ${res.statusText}`);
+  }
+
+  return res.json();
 }

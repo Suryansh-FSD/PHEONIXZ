@@ -1,0 +1,52 @@
+name: Autonomous PhoenixZ Cycle
+
+on:
+  schedule:
+    # Run automatically every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    # Support manual execution from GitHub UI
+
+concurrency:
+  group: phoenixz-autonomous-cycle
+  cancel-in-progress: false
+
+jobs:
+  trigger-autonomous-cycle:
+    name: Trigger PhoenixZ Autonomous Cycle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Repository Configuration
+        run: |
+          if [ -z "${{ vars.PHOENIXZ_APP_URL }}" ]; then
+            echo "::error::PHOENIXZ_APP_URL variable is not set. Please set it in GitHub Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+          echo "Target PhoenixZ Deployment URL: ${{ vars.PHOENIXZ_APP_URL }}"
+
+      - name: Dispatch HTTP Autonomous Cycle Trigger
+        run: |
+          RESPONSE_FILE=$(mktemp)
+          HTTP_STATUS=$(curl -s -o "$RESPONSE_FILE" -w "%{http_code}" \
+            -X POST "${{ vars.PHOENIXZ_APP_URL }}/api/internal/cycle" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -d '{}')
+
+          echo "HTTP Response Status: $HTTP_STATUS"
+          echo "Response Content:"
+          cat "$RESPONSE_FILE"
+          echo ""
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✓ Autonomous cycle triggered successfully."
+            exit 0
+          fi
+
+          if grep -q "already_running" "$RESPONSE_FILE" || grep -q "in_progress" "$RESPONSE_FILE"; then
+            echo "✓ Cycle execution already in progress. Skipping redundant trigger."
+            exit 0
+          fi
+
+          echo "::error::PhoenixZ endpoint returned failure status: $HTTP_STATUS"
+          exit 1
