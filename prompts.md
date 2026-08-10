@@ -18173,11 +18173,4 @@ npx plugins add vercel/vercel-plugin
 
 ---
 
-## Prompt 84
-
-```text
-make a prompt.md file with all the prompts given to make this appp
-```
-
----
 
